@@ -1,0 +1,43 @@
+{
+  "name": "myerscode/utilities-web",
+  "description": "A fluent interface for interacting with web page content and urls.",
+  "keywords": [
+    "web",
+    "content",
+    "url"
+  ],
+  "type": "library",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "myerscode",
+      "email": "team@myerscode.com",
+      "homepage": "https://myerscode.com"
+    },
+    {
+      "name": "Fred Myerscough",
+      "email": "fred@myerscough.co.uk",
+      "homepage": "https://fredmyerscough.co.uk"
+    }
+  ],
+  "require": {
+    "php": ">=7.0",
+    "zendframework/zend-http": "^2.6",
+    "symfony/dom-crawler": "^3.3",
+    "league/uri": "^5.3",
+    "ext-curl": "*"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "^6.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "Myerscode\\Utilities\\Web\\": "src"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Tests\\": "tests/"
+    }
+  }
+}
