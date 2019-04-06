@@ -12,6 +12,8 @@ class UrlUtility
      */
     private $uri;
 
+    const DEFAULT_SCHEME = 'http://';
+
     public function __construct($uri)
     {
         $this->setUrl($uri);
@@ -121,7 +123,16 @@ class UrlUtility
      */
     private function setUrl($uri)
     {
-        $this->uri = Http::createFromString(trim($uri));
+        $trimmed = trim($uri);
+
+        // check if a scheme is present, if not we need to give it one
+        preg_match_all('/(https:\/\/)|(http:\/\/)/', $trimmed, $matches, PREG_SET_ORDER, 0);
+
+        if (empty($matches)) {
+            $trimmed = self::DEFAULT_SCHEME . $trimmed;
+        }
+
+        $this->uri = Http::createFromString($trimmed);
 
         return $this;
     }
