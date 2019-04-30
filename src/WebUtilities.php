@@ -2,7 +2,6 @@
 
 namespace Myerscode\Utilities\Web;
 
-
 class WebUtilities
 {
 
@@ -14,4 +13,43 @@ class WebUtilities
 
     const METHOD_SYSTEM = 4;
 
+    /**
+     * @var string
+     */
+    private $url;
+
+    public function __construct(string $url)
+    {
+        $this->url = $url;
+    }
+
+    /**
+     * Get the Ping utility
+     *
+     * @return PingUtility
+     */
+    public function ping(): PingUtility
+    {
+        return (new PingUtility($this->url));
+    }
+
+    /**
+     * Get the URL utility
+     *
+     * @return UrlUtility
+     */
+    public function url(): UrlUtility
+    {
+        return (new UrlUtility($this->url));
+    }
+
+    /**
+     * Get the content utility
+     *
+     * @return ContentUtility
+     */
+    public function content(): ContentUtility
+    {
+        return (new ContentUtility($this->url));
+    }
 }
