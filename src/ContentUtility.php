@@ -5,6 +5,7 @@ namespace Myerscode\Utilities\Web;
 use Myerscode\Utilities\Web\Exceptions\ContentNotFoundException;
 use Myerscode\Utilities\Web\Exceptions\UnreachableContentException;
 use Myerscode\Utilities\Web\Resource\Dom;
+use Myerscode\Utilities\Web\Resource\Response;
 use Zend\Http\Client;
 
 /**
@@ -54,6 +55,16 @@ class ContentUtility
     }
 
     /**
+     * @return Response
+     */
+    public function response()
+    {
+        $response = $this->client()->send();
+
+        return new Response(intval($response->getStatusCode()), $response->getBody());
+    }
+
+    /**
      * Get the content from the url
      *
      * @return string
@@ -63,12 +74,12 @@ class ContentUtility
     public function content(): string
     {
         try {
-            $response = $this->client()->send();
+            $response = $this->response();
 
-            if ($response->getStatusCode() == 404) {
+            if ($response->code() == 404) {
                 throw new ContentNotFoundException();
             }
-            return $response->getBody();
+            return $response->content();
         } catch (ContentNotFoundException $e) {
             throw $e;
         } catch (\Exception $e) {
