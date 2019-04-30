@@ -1,11 +1,11 @@
 <?php
 
-namespace Tests\UriUtility;
+namespace Tests\UrlUtility;
 
 use Tests\BaseUrlSuite;
 
 /**
- * @coversDefaultClass Myerscode\Utilities\Web\UrlUtility
+ * @coversDefaultClass \Myerscode\Utilities\Web\UrlUtility
  */
 class IsHttpsTest extends BaseUrlSuite
 {
