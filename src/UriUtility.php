@@ -107,18 +107,18 @@ class UriUtility
      * @throws InvalidUrlException
      * @throws UnsupportedCheckMethodException
      */
-    public function response(string $method = WebUtilities::METHOD_CURL): Response
+    public function response(string $method = Utility::METHOD_CURL): Response
     {
         switch ($method) {
-            case WebUtilities::METHOD_CURL:
+            case Utility::METHOD_CURL:
                 $response = $this->checkWithCurl();
                 break;
 
-            case WebUtilities::METHOD_HEADERS:
+            case Utility::METHOD_HEADERS:
                 $response = $this->checkWithHeaders();
                 break;
 
-            case WebUtilities::METHOD_HTTP:
+            case Utility::METHOD_HTTP:
                 $response = $this->checkWithHeaders();
                 break;
 

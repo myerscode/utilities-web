@@ -2,7 +2,7 @@
 
 namespace Myerscode\Utilities\Web;
 
-class WebUtilities
+class Utility
 {
 
     const METHOD_CURL = 1;
