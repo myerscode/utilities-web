@@ -4,7 +4,9 @@
   "keywords": [
     "web",
     "content",
-    "url"
+    "url",
+    "uri",
+    "ping"
   ],
   "type": "library",
   "license": "MIT",

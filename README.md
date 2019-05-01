@@ -13,3 +13,20 @@ You can install this package via composer:
 ``` bash
 composer require myerscode/utilities-web
 ```
+
+## Available Utilities
+This package has helpers to interact with various aspects of web content.
+
+### [Content Utility](docs/content-utility.md)
+
+### [Ping Utility](docs/ping-utility.md)
+
+### [URI Utility](docs/uri-utility.md)
+
+### [URL Utility](docs/url-utility.md)
+
+
+
+## License
+
+The MIT License (MIT). Please see [License File](LICENSE) for more information.
