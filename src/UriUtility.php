@@ -209,7 +209,7 @@ class UriUtility
                 break;
 
             case Utility::METHOD_HTTP:
-                $response = $this->checkWithHttp();
+                $response = $this->checkWithHttpClient();
                 break;
 
             default:
@@ -410,7 +410,7 @@ class UriUtility
      * @throws EmptyUrlException
      * @throws InvalidUrlException
      */
-    public function checkWithHttp(): Response
+    public function checkWithHttpClient(): Response
     {
         $this->checkUrl();
 

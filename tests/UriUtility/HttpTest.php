@@ -31,7 +31,7 @@ class HttpTest extends BaseUriSuite
      */
     public function testCheckWithHttp($url, $expected)
     {
-        $response = $this->utility($url)->checkWithHttp();
+        $response = $this->utility($url)->checkWithHttpClient();
 
         $this->assertEquals($expected, $response->code());
     }
