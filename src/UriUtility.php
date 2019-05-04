@@ -209,7 +209,7 @@ class UriUtility
                 break;
 
             case Utility::METHOD_HTTP:
-                $response = $this->checkWithHeaders();
+                $response = $this->checkWithHttp();
                 break;
 
             default:
