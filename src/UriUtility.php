@@ -197,7 +197,7 @@ class UriUtility
      * @throws UnsupportedCheckMethodException
      * @throws CurlInitException
      */
-    public function response(string $method = Utility::METHOD_CURL): Response
+    public function check(string $method = Utility::METHOD_CURL): Response
     {
         switch ($method) {
             case Utility::METHOD_CURL:
@@ -217,6 +217,26 @@ class UriUtility
         }
 
         return $response;
+    }
+
+    /**
+     * Get response from the uri
+     *
+     * @return Response
+     * @throws EmptyUrlException
+     * @throws InvalidUrlException
+     */
+    public function response(): Response
+    {
+        $this->checkUrl();
+
+        $client = Utility::client($this->uri());
+
+        $response = $client->send();
+
+        $response->getStatusCode();
+
+        return new Response(intval($response->getStatusCode()), $response->getBody());
     }
 
     /**
@@ -412,15 +432,7 @@ class UriUtility
      */
     public function checkWithHttpClient(): Response
     {
-        $this->checkUrl();
-
-        $client = Utility::client($this->uri());
-
-        $response = $client->send();
-
-        $response->getStatusCode();
-
-        return new Response(intval($response->getStatusCode()));
+        return $this->response();
     }
 
     /**
