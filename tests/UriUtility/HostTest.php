@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\UrlUtility;
+namespace Tests\UriUtility;
 
 use Tests\BaseUrlSuite;
 
@@ -35,7 +35,7 @@ class HostTest extends BaseUrlSuite
      */
     public function testExpectedHost($expected, $string)
     {
-        $this->assertEquals($expected, $this->utility($string)->getHost());
+        $this->assertEquals($expected, $this->utility($string)->host());
     }
 
 }

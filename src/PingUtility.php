@@ -8,9 +8,9 @@ class PingUtility
     /**
      * The url ping
      *
-     * @var UrlUtility $url
+     * @var UriUtility $uri
      */
-    private $url;
+    private $uri;
 
     /**
      * @var int
@@ -31,7 +31,7 @@ class PingUtility
      */
     public function __construct(string $url)
     {
-        $this->url = new UrlUtility($url);
+        $this->uri = new UriUtility($url);
     }
 
     /**
@@ -50,7 +50,7 @@ class PingUtility
 
         $timeout = escapeshellcmd($this->timeout);
 
-        $host = escapeshellcmd($this->url->getHost());
+        $host = escapeshellcmd($this->uri->host());
 
 
         if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {

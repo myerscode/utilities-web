@@ -2,6 +2,8 @@
 
 namespace Myerscode\Utilities\Web;
 
+use League\Uri\Components\Query;
+use League\Uri\Http;
 use Myerscode\Utilities\Web\Exceptions\CurlInitException;
 use Myerscode\Utilities\Web\Exceptions\EmptyUrlException;
 use Myerscode\Utilities\Web\Exceptions\InvalidUrlException;
@@ -10,12 +12,13 @@ use Myerscode\Utilities\Web\Resource\Response;
 
 class UriUtility
 {
+
+    const DEFAULT_SCHEME = 'http://';
+
     /**
-     * The url ping
-     *
-     * @var UrlUtility $url
+     * @var Http $uri
      */
-    private $url;
+    private $uri;
 
     /**
      * @var int
@@ -39,13 +42,99 @@ class UriUtility
     /**
      * Utility constructor.
      *
-     * @param string $url
+     * @param string $uri
      */
-    public function __construct(string $url)
+    public function __construct(string $uri)
     {
-        $this->url = new UrlUtility($url);
+
+        $this->setUrl($uri);
     }
 
+    /**
+     * Set the current URL
+     *
+     * @param $uri
+     * @return $this
+     */
+    private function setUrl($uri)
+    {
+        $trimmed = trim($uri);
+
+        // check if a scheme is present, if not we need to give it one
+        preg_match_all('/(https:\/\/)|(http:\/\/)/', $trimmed, $matches, PREG_SET_ORDER, 0);
+
+        if (empty($matches)) {
+            $trimmed = self::DEFAULT_SCHEME . $trimmed;
+        }
+
+        $this->uri = Http::createFromString($trimmed);
+
+        return $this;
+    }
+
+    /**
+     * Get the url the utility is using.
+     *
+     * @return string The url
+     */
+    public function url(): string
+    {
+        return $this->value();
+    }
+
+    /**
+     * Get the current URI
+     *
+     * @return string
+     */
+    public function value()
+    {
+        $scheme = (empty($scheme = $this->scheme())) ? 'http://' : $scheme . '://';
+
+        $query = (empty($query = $this->query())) ? '' : '?' . $query;
+
+        return $scheme . $this->host() . $this->path() . urldecode($query);
+    }
+
+    /**
+     * Get the URLS scheme
+     *
+     * @return string
+     */
+    public function scheme()
+    {
+        return $this->uri->getScheme();
+    }
+
+    /**
+     * Get query string of parameters from the URL
+     *
+     * @return string
+     */
+    public function query()
+    {
+        return $this->uri->getQuery();
+    }
+
+    /**
+     * Retrieve the host component of the URL.
+     *
+     * @return string
+     */
+    public function host()
+    {
+        return $this->uri->getHost();
+    }
+
+    /**
+     * Get the current URLS path
+     *
+     * @return string
+     */
+    public function path()
+    {
+        return $this->uri->getPath();
+    }
 
     /**
      * Get the ttl.
@@ -106,6 +195,7 @@ class UriUtility
      * @throws EmptyUrlException
      * @throws InvalidUrlException
      * @throws UnsupportedCheckMethodException
+     * @throws CurlInitException
      */
     public function response(string $method = Utility::METHOD_CURL): Response
     {
@@ -141,7 +231,7 @@ class UriUtility
     {
         $this->checkUrl();
 
-        $uri = $this->url->value();
+        $uri = $this->value();
 
         $curl = @curl_init($uri);
 
@@ -185,10 +275,10 @@ class UriUtility
      */
     protected function checkUrl()
     {
-        if (empty($this->url->value())) {
+        if (empty($this->value())) {
             throw new EmptyUrlException();
         }
-        if (filter_var($this->url->value(), FILTER_VALIDATE_URL) === false) {
+        if (filter_var($this->value(), FILTER_VALIDATE_URL) === false) {
             throw new InvalidUrlException();
         }
     }
@@ -224,7 +314,7 @@ class UriUtility
     {
         $this->checkUrl();
 
-        $uri = $this->url->value();
+        $uri = $this->value();
 
         $streamContextDefaults = stream_context_get_options(stream_context_get_default());
 
@@ -258,20 +348,88 @@ class UriUtility
     }
 
     /**
+     * Get the urls query parameters as a string
+     *
+     * @param null $numeric_prefix
+     * @param null $arg_separator
+     * @param int $enc_type
+     * @return string
+     */
+    public function getQueryString($numeric_prefix = null, $arg_separator = null, $enc_type = PHP_QUERY_RFC1738)
+    {
+        return http_build_query($this->getQueryParameters(), $numeric_prefix, $arg_separator, $enc_type);
+    }
+
+    /**
+     * Get an array of query parameters from the URL
+     *
+     * @return array
+     */
+    public function getQueryParameters()
+    {
+        $parameters = [];
+
+        parse_str(parse_url($this->query(), PHP_URL_QUERY), $parameters);
+
+        return $parameters;
+    }
+
+    /**
+     * Check if the URL is set to url HTTPS
+     *
+     * @return bool
+     */
+    public function isHttps()
+    {
+        return 'https' === strtolower($this->scheme());
+    }
+
+    /**
+     * Set the urls query parameters
+     *
+     * @param $query
+     * @return $this
+     */
+    public function setQuery($query)
+    {
+        if (is_array($query)) {
+            $queryString = Query::createFromPairs($query);
+        } else {
+            $queryString = new Query(rtrim($query, '?'));
+        }
+
+        $this->setUrl($this->uri->withQuery($queryString));
+
+        return $this;
+    }
+
+    /**
      * Check the url exists using a http client
      *
      * @return Response
      * @throws EmptyUrlException
      * @throws InvalidUrlException
      */
-    public function checkWithHttp()
+    public function checkWithHttp(): Response
     {
         $this->checkUrl();
 
-        $uri = $this->url->value();
+        $client = Utility::client($this->uri());
 
-        $client = new ContentUtility($uri);
+        $response = $client->send();
 
-        return $client->response();
+        $response->getStatusCode();
+
+        return new Response(intval($response->getStatusCode()));
+    }
+
+    /**
+     * Get the url the utility is using.
+     *
+     * @return string The url
+     */
+    public function uri(): string
+    {
+        return $this->value();
     }
 }

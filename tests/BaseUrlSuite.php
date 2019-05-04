@@ -2,7 +2,7 @@
 
 namespace Tests;
 
-use Myerscode\Utilities\Web\UrlUtility;
+use Myerscode\Utilities\Web\UriUtility;
 use PHPUnit\Framework\TestCase;
 
 abstract class BaseUrlSuite extends TestCase
@@ -10,10 +10,10 @@ abstract class BaseUrlSuite extends TestCase
 
     /**
      * @param $url
-     * @return UrlUtility
+     * @return UriUtility
      */
     public function utility($url)
     {
-        return new UrlUtility($url);
+        return new UriUtility($url);
     }
 }

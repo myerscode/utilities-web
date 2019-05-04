@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\UrlUtility;
+namespace Tests\UriUtility;
 
 use Tests\BaseUrlSuite;
 

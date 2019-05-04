@@ -2,6 +2,8 @@
 
 namespace Myerscode\Utilities\Web;
 
+use Zend\Http\Client;
+
 class Utility
 {
 
@@ -18,9 +20,29 @@ class Utility
      */
     private $url;
 
+    /**
+     * Collection of request options to be passed to guzzle
+     *
+     * @var array
+     */
+    static $requestOptions = [
+        'timeout' => 60,
+    ];
+
     public function __construct(string $url)
     {
         $this->url = $url;
+    }
+
+    /**
+     * Get a http client for utilities to use
+     * @param string $url
+     * @param array $requestOptions
+     * @return Client
+     */
+    static public function client(string $url, array $requestOptions = [])
+    {
+        return new Client($url, array_merge([], self::$requestOptions, $requestOptions));
     }
 
     /**
@@ -36,11 +58,11 @@ class Utility
     /**
      * Get the URL utility
      *
-     * @return UrlUtility
+     * @return UriUtility
      */
-    public function url(): UrlUtility
+    public function url(): UriUtility
     {
-        return (new UrlUtility($this->url));
+        return (new UriUtility($this->url));
     }
 
     /**

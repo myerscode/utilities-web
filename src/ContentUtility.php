@@ -19,7 +19,7 @@ class ContentUtility
     /**
      * The url to get content from
      *
-     * @var UrlUtility $url
+     * @var UriUtility $url
      */
     private $url;
 
@@ -40,7 +40,7 @@ class ContentUtility
      */
     public function __construct($url, array $requestOptions = [])
     {
-        $this->url = new UrlUtility($url);
+        $this->url = new UriUtility($url);
         $this->setRequestOptions($requestOptions);
     }
 
@@ -51,7 +51,7 @@ class ContentUtility
      */
     protected function client()
     {
-        return new Client($this->url(), $this->requestOptions);
+        return Utility::client($this->url(), $this->requestOptions);
     }
 
     /**
