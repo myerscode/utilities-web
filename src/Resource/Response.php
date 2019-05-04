@@ -16,7 +16,8 @@ class Response
      */
     private $content;
 
-    public function __construct($code, $content = '')
+
+    public function __construct(int $code, string $content = '')
     {
         $this->code = $code;
         $this->content = $content;
@@ -33,10 +34,16 @@ class Response
     /**
      * @return string
      */
-    public function content()
+    public function content(): string
     {
         return $this->content;
     }
 
-
+    /**
+     * @return Dom
+     */
+    public function dom(): Dom
+    {
+        return new Dom($this->content());
+    }
 }
