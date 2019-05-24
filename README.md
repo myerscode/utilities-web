@@ -23,9 +23,6 @@ This package has helpers to interact with various aspects of web content.
 
 ### [URI Utility](docs/uri-utility.md)
 
-### [URL Utility](docs/url-utility.md)
-
-
 
 ## License
 
