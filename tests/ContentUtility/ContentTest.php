@@ -3,6 +3,8 @@
 namespace Tests\ContentUtility;
 
 use Myerscode\Utilities\Web\ContentUtility;
+use Myerscode\Utilities\Web\Exceptions\ContentNotFoundException;
+use Myerscode\Utilities\Web\Exceptions\UnreachableContentException;
 use Myerscode\Utilities\Web\Resource\Response;
 use Tests\BaseContentSuite;
 use Zend\Http\Client;
@@ -16,11 +18,11 @@ class ContentTest extends BaseContentSuite
     /**
      * Check that content turns html from a valid url
      * @covers ::content
-     *
-     * @expectedException \Myerscode\Utilities\Web\Exceptions\ContentNotFoundException
      */
     public function testContentNotFoundExceptionThrown()
     {
+        $this->expectException(ContentNotFoundException::class);
+
         $responseStub = \Mockery::mock(Response::class, [404])->makePartial();
 
         $stub = \Mockery::mock(ContentUtility::class, ['http://localhost/foo-bar'])->makePartial();
@@ -68,11 +70,11 @@ class ContentTest extends BaseContentSuite
     /**
      * Check that content turns html from a valid url
      * @covers ::content
-     *
-     * @expectedException \Myerscode\Utilities\Web\Exceptions\UnreachableContentException
      */
     public function testUnreachableContentExceptionThrown()
     {
+        $this->expectException(UnreachableContentException::class);
+
         $clientStub = $this->getMockBuilder('Client')->setMethods(['send'])->getMock();
 
         $clientStub->expects($this->once())

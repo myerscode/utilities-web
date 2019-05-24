@@ -7,26 +7,23 @@
          convertNoticesToExceptions="true"
          convertWarningsToExceptions="true"
          processIsolation="false"
+         cacheResult="false"
          stopOnFailure="false">
     <testsuites>
-        <testsuite name="Unit Tests">
+        <testsuite name="Unit">
             <directory suffix="Test.php">./tests/</directory>
         </testsuite>
     </testsuites>
     <logging>
-        <log type="coverage-html" target="./logs/coverage" charset="UTF-8"
-             yui="true" highlight="true"
-             lowUpperBound="50" highLowerBound="80"/>
-        <log type="testdox-html" target="./logs/tests.html"/>
-        <log type="coverage-clover" target="./logs/coverage.xml"/>
+        <log type="coverage-html" target="./coverage/coverage"/>
+        <log type="testdox-html" target="./coverage/tests.html"/>
+        <log type="coverage-clover" target="./coverage/coverage.xml"/>
     </logging>
     <filter>
         <whitelist processUncoveredFilesFromWhitelist="true">
             <directory suffix=".php">./src/</directory>
+            <exclude>
+            </exclude>
         </whitelist>
-        <blacklist>
-            <directory suffix=".php">./tests</directory>
-            <directory suffix=".php">./vendor</directory>
-        </blacklist>
     </filter>
 </phpunit>

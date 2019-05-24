@@ -1,4 +1,4 @@
 vendor
 composer.lock
-logs
+coverage
 .phpunit.result.cache
