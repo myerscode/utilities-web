@@ -4,6 +4,8 @@ namespace Myerscode\Utilities\Web;
 
 use League\Uri\Components\Query;
 use League\Uri\Http;
+use League\Uri\QueryBuilder;
+use League\Uri\QueryParser;
 use Myerscode\Utilities\Web\Exceptions\CurlInitException;
 use Myerscode\Utilities\Web\Exceptions\EmptyUrlException;
 use Myerscode\Utilities\Web\Exceptions\InvalidUrlException;
@@ -14,6 +16,16 @@ class UriUtility
 {
 
     const DEFAULT_SCHEME = 'http://';
+
+    /**
+     * @var QueryParser
+     */
+    private $parser;
+
+    /**
+     * @var QueryBuilder
+     */
+    private $builder;
 
     /**
      * @var Http $uri
@@ -39,6 +51,7 @@ class UriUtility
      */
     private $followRedirects = false;
 
+
     /**
      * Utility constructor.
      *
@@ -46,8 +59,9 @@ class UriUtility
      */
     public function __construct(string $uri)
     {
-
         $this->setUrl($uri);
+        $this->parser = new QueryParser();
+        $this->builder = new QueryBuilder();
     }
 
     /**
@@ -419,6 +433,32 @@ class UriUtility
         }
 
         $this->setUrl($this->uri->withQuery($queryString));
+
+        return $this;
+    }
+
+    /**
+     * Add or override query parameters to the uri
+     *
+     * @param $params
+     * @return $this
+     * @throws \Exception
+     */
+    public function addQueryParameter($params)
+    {
+        if (is_string($params)) {
+            $params = $this->parser->convert($this->parser->parse($params));
+        } else {
+            if (is_array($params)) {
+                $params = $this->parser->convert($params);
+            } else {
+                throw new \Exception();
+            }
+        }
+
+        $params = array_merge($this->parser->convert($this->parser->parse($this->uri->getQuery())), $params);
+
+        $this->setUrl($this->uri->withQuery($this->builder->build($params)));
 
         return $this;
     }
