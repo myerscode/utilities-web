@@ -3,7 +3,9 @@
 namespace Tests\ContentUtility;
 
 use Myerscode\Utilities\Web\ContentUtility;
+use Myerscode\Utilities\Web\Resource\Response;
 use Tests\BaseContentSuite;
+use Zend\Http\Client;
 
 /**
  * @coversDefaultClass Myerscode\Utilities\Web\ContentUtility
@@ -19,27 +21,11 @@ class ContentTest extends BaseContentSuite
      */
     public function testContentNotFoundExceptionThrown()
     {
-        $clientStub = $this->getMockBuilder('Client')->setMethods(['send'])->getMock();
+        $responseStub = \Mockery::mock(Response::class, [404])->makePartial();
 
-        $responseStub = $this->getMockBuilder('Response')->setMethods(['getStatusCode', 'getBody'])->getMock();
+        $stub = \Mockery::mock(ContentUtility::class, ['http://localhost/foo-bar'])->makePartial();
 
-        $clientStub->expects($this->once())
-            ->method('send')
-            ->will($this->returnValue($responseStub));
-
-        $responseStub->expects($this->once())
-            ->method('getStatusCode')
-            ->will($this->returnValue(404));
-
-        $stub = $this->getMockBuilder(ContentUtility::class)
-            ->setConstructorArgs(['http://localhost/foo-bar'])
-            ->setMethods(['client'])
-            ->getMock();
-
-        $stub->expects($this->once())
-            ->method('client')
-            ->will($this->returnValue($clientStub));
-
+        $stub->shouldReceive('response')->once()->andReturn($responseStub);
 
         $stub->content();
     }
