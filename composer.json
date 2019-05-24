@@ -23,9 +23,9 @@
     }
   ],
   "require": {
-    "php": ">=7.0",
-    "zendframework/zend-http": "^2.6",
-    "symfony/dom-crawler": "^3.3",
+    "php": "^7.2",
+    "zendframework/zend-http": "^2.10",
+    "symfony/dom-crawler": "^4.2",
     "league/uri": "^5.3",
     "ext-curl": "*",
     "imangazaliev/didom": "^1.14"
