@@ -6,6 +6,9 @@ namespace Tests\UriUtility;
 
 use Tests\BaseUriSuite;
 
+/**
+ * @coversDefaultClass \Myerscode\Utilities\Web\UriUtility
+ */
 class AddQueryParamsTest extends BaseUriSuite
 {
 

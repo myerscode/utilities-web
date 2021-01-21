@@ -5,7 +5,7 @@ namespace Tests\UriUtility;
 use Tests\BaseUriSuite;
 
 /**
- * @coversDefaultClass \Myerscode\Utilities\Web\UrlUtility
+ * @coversDefaultClass \Myerscode\Utilities\Web\UriUtility
  */
 class HttpTest extends BaseUriSuite
 {
@@ -25,7 +25,7 @@ class HttpTest extends BaseUriSuite
      * Check that the url exists using http
      *
      * @dataProvider dataProvider
-     * @covers ::checkWithHttp
+     * @covers ::checkWithHttpClient
      * @param $url
      * @param $expected
      */

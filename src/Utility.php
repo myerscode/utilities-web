@@ -2,7 +2,7 @@
 
 namespace Myerscode\Utilities\Web;
 
-use Zend\Http\Client;
+use Laminas\Http\Client;
 
 class Utility
 {

@@ -23,16 +23,16 @@
     }
   ],
   "require": {
-    "php": "^7.2",
-    "zendframework/zend-http": "^2.10",
-    "symfony/dom-crawler": "^4.2",
-    "league/uri": "^5.3",
+    "php": "^7.0|^8.0",
     "ext-curl": "*",
-    "imangazaliev/didom": "^1.14"
+    "imangazaliev/didom": "^1.14",
+    "laminas/laminas-http": "^2.0",
+    "league/uri": "^5.3",
+    "symfony/dom-crawler": "^4.2"
   },
   "require-dev": {
     "mockery/mockery": "^1.2",
-    "phpunit/phpunit": "^7.5"
+    "phpunit/phpunit": "^8.0|^9.0"
   },
   "autoload": {
     "psr-4": {

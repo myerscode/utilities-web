@@ -5,7 +5,7 @@ namespace Tests\UriUtility;
 use Tests\BaseUrlSuite;
 
 /**
- * @coversDefaultClass \Myerscode\Utilities\Web\UrlUtility
+ * @coversDefaultClass \Myerscode\Utilities\Web\UriUtility
  */
 class IsHttpsTest extends BaseUrlSuite
 {
