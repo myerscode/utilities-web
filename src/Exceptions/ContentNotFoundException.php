@@ -6,5 +6,4 @@ use Exception;
 
 class ContentNotFoundException extends Exception
 {
-
 }

@@ -2,45 +2,40 @@
 
 namespace Myerscode\Utilities\Web;
 
+use Exception;
 use Myerscode\Utilities\Web\Exceptions\ContentNotFoundException;
 use Myerscode\Utilities\Web\Exceptions\UnreachableContentException;
 use Myerscode\Utilities\Web\Resource\Dom;
 use Myerscode\Utilities\Web\Resource\Response;
-use Zend\Http\Client;
+use Laminas\Http\Client;
 
 /**
- * Class Utility
+ * Class ClientUtility
  *
  * @package Myerscode\Utilities\Web
  */
 class ContentUtility
 {
-
     /**
      * The url to get content from
-     *
-     * @var UriUtility $url
      */
-    private $url;
+    private readonly UriUtility $uriUtility;
 
     /**
      * Collection of request options to be passed to guzzle
-     *
-     * @var array
      */
-    private $requestOptions = [
+    private array $requestOptions = [
         'timeout' => 60,
     ];
 
     /**
-     * Utility constructor.
+     * ClientUtility constructor.
      *
      * @param $url
-     * @param array $requestOptions
      */
     public function __construct($url, array $requestOptions = [])
     {
-        $this->url = new UriUtility($url);
+        $this->uriUtility = new UriUtility($url);
         $this->setRequestOptions($requestOptions);
     }
 
@@ -49,25 +44,21 @@ class ContentUtility
      *
      * @return Client
      */
-    protected function client()
+    protected function client(): Client
     {
-        return Utility::client($this->url(), $this->requestOptions);
+        return ClientUtility::client($this->url(), $this->requestOptions);
     }
 
-    /**
-     * @return Response
-     */
-    public function response()
+    public function response(): Response
     {
         $response = $this->client()->send();
 
-        return new Response(intval($response->getStatusCode()), $response->getBody());
+        return new Response((int) $response->getStatusCode(), $response->getBody());
     }
 
     /**
      * Get the content from the url
      *
-     * @return string
      * @throws UnreachableContentException
      * @throws ContentNotFoundException
      */
@@ -79,10 +70,11 @@ class ContentUtility
             if ($response->code() == 404) {
                 throw new ContentNotFoundException();
             }
+
             return $response->content();
-        } catch (ContentNotFoundException $e) {
-            throw $e;
-        } catch (\Exception $e) {
+        } catch (ContentNotFoundException $contentNotFoundException) {
+            throw $contentNotFoundException;
+        } catch (Exception) {
             throw new UnreachableContentException();
         }
     }
@@ -90,7 +82,6 @@ class ContentUtility
     /**
      * Get the content as a content dom
      *
-     * @return Dom
      * @throws ContentNotFoundException
      * @throws UnreachableContentException
      */
@@ -103,7 +94,6 @@ class ContentUtility
      * Set options to use in a request against the url
      *
      * @param $requestOptions
-     * @return void
      */
     private function setRequestOptions(array $requestOptions): void
     {
@@ -112,11 +102,9 @@ class ContentUtility
 
     /**
      * Get the url that the the content is got from
-     *
-     * @return string
      */
     public function url(): string
     {
-        return $this->url->value();
+        return $this->uriUtility->value();
     }
 }

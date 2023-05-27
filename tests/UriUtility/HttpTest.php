@@ -2,37 +2,35 @@
 
 namespace Tests\UriUtility;
 
+use Iterator;
 use Tests\BaseUriSuite;
+use Tests\TestResponse;
 
-/**
- * @coversDefaultClass \Myerscode\Utilities\Web\UriUtility
- */
 class HttpTest extends BaseUriSuite
 {
-
-    public function dataProvider()
+    public static function dataProvider(): Iterator
     {
-        return [
-            'responds with 200' => ['https://httpbin.org/status/200', 200],
-            'responds with 300' => ['https://httpbin.org/status/300', 300],
-            'responds with 400' => ['https://httpbin.org/status/400', 400],
-            'responds with 404' => ['https://httpbin.org/status/404', 404],
-            'responds with 500' => ['https://httpbin.org/status/500', 500],
-        ];
+        yield 'responds with 200' => ['/status/200', 200];
+        yield 'responds with 300' => ['/status/300', 300];
+        yield 'responds with 400' => ['/status/400', 400];
+        yield 'responds with 404' => ['/status/404', 404];
+        yield 'responds with 500' => ['/status/500', 500];
     }
 
     /**
      * Check that the url exists using http
      *
      * @dataProvider dataProvider
-     * @covers ::checkWithHttpClient
+     *
      * @param $url
      * @param $expected
      */
-    public function testCheckWithHttp($url, $expected)
+    public function testCheckWithHttp(string $path, int $expected): void
     {
-        $response = $this->utility($url)->checkWithHttpClient();
+        self::$server->setResponseOfPath($path, new TestResponse($path, [], $expected));
 
-        $this->assertEquals($expected, $response->code());
+        $response = $this->utility(self::serverUrl($path))->checkWithHttpClient();
+
+        $this->assertSame($expected, $response->code());
     }
 }

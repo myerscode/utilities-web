@@ -3,11 +3,9 @@
 namespace Tests;
 
 use Myerscode\Utilities\Web\ContentUtility;
-use PHPUnit\Framework\TestCase;
 
-abstract class BaseContentSuite extends TestCase
+abstract class BaseContentSuite extends BaseSuite
 {
-
     /**
      * @param $url
      * @param $requestOptions

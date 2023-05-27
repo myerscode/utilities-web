@@ -18,11 +18,11 @@ composer require myerscode/utilities-web
 ## Available Utilities
 This package has helpers to interact with various aspects of web content.
 
-### [Content Utility](docs/content-utility.md)
+### [Content ClientUtility](docs/content-utility.md)
 
-### [Ping Utility](docs/ping-utility.md)
+### [Ping ClientUtility](docs/ping-utility.md)
 
-### [URI Utility](docs/uri-utility.md)
+### [URI ClientUtility](docs/uri-utility.md)
 
 
 ## License

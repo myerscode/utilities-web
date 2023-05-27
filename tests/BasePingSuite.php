@@ -7,7 +7,6 @@ use PHPUnit\Framework\TestCase;
 
 abstract class BasePingSuite extends TestCase
 {
-
     /**
      * @param $url
      * @return PingUtility

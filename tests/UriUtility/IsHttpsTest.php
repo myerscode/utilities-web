@@ -2,28 +2,23 @@
 
 namespace Tests\UriUtility;
 
-use Tests\BaseUrlSuite;
+use Iterator;
+use Tests\BaseUriSuite;
 
-/**
- * @coversDefaultClass \Myerscode\Utilities\Web\UriUtility
- */
-class IsHttpsTest extends BaseUrlSuite
+class IsHttpsTest extends BaseUriSuite
 {
-
-    public function dataProvider()
+    public static function dataProvider(): Iterator
     {
-        return [
-            [false, 'http://www.foo.bar'],
-            [false, 'www.foo.bar'],
-            [true, 'https://www.foo.bar'],
-            [false, 'http://foo.bar'],
-            [true, 'https://foo.bar'],
-            [false, 'www.foo.bar'],
-            [false, 'foo.bar'],
-            [false, 'localhost'],
-            [false, 'www.foo.bar?hello=world'],
-            [false, 'www.foo.bar?hello[]=world&hello[]=world'],
-        ];
+        yield [false, 'http://www.foo.bar'];
+        yield [false, 'www.foo.bar'];
+        yield [true, 'https://www.foo.bar'];
+        yield [false, 'http://foo.bar'];
+        yield [true, 'https://foo.bar'];
+        yield [false, 'www.foo.bar'];
+        yield [false, 'foo.bar'];
+        yield [false, 'localhost'];
+        yield [false, 'www.foo.bar?hello=world'];
+        yield [false, 'www.foo.bar?hello[]=world&hello[]=world'];
     }
 
     /**
@@ -32,9 +27,8 @@ class IsHttpsTest extends BaseUrlSuite
      * @param number $expected The value expected to be returned
      * @param number $string The value to pass to the utility
      * @dataProvider dataProvider
-     * @covers ::isHttps
      */
-    public function testExpectedIsHttps($expected, $string)
+    public function testExpectedIsHttps(bool $expected, string $string): void
     {
         $this->assertEquals($expected, $this->utility($string)->isHttps());
     }

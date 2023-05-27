@@ -3,11 +3,9 @@
 namespace Tests;
 
 use Myerscode\Utilities\Web\UriUtility;
-use PHPUnit\Framework\TestCase;
 
-abstract class BaseUriSuite extends TestCase
+abstract class BaseUriSuite extends BaseSuite
 {
-
     /**
      * @param $url
      * @return UriUtility

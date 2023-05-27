@@ -1,4 +1,4 @@
-# Ping Utility
+# Ping ClientUtility
 The content utility will allow you to ping a given URL.
 
 ```php

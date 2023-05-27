@@ -6,5 +6,4 @@ use DiDom\Document;
 
 class Dom extends Document
 {
-
 }
