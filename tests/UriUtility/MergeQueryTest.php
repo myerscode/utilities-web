@@ -10,6 +10,7 @@ class MergeQueryTest extends BaseUriSuite
 {
     public static function dataProvider(): Iterator
     {
+        yield 'empty query' => ['https://myerscode.com', '', 'https://myerscode.com'];
         yield 'add query by string' => ['https://myerscode.com', 'foo=bar', 'https://myerscode.com?foo=bar'];
         yield 'add query by array' => ['https://myerscode.com', ['foo' => 'bar'], 'https://myerscode.com?foo=bar'];
         yield 'add another query by string' => ['https://myerscode.com?hello=world', 'foo=bar', 'https://myerscode.com?hello=world&foo=bar'];

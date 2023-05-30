@@ -3,13 +3,13 @@
 namespace Myerscode\Utilities\Web;
 
 use Curl\Curl;
-use Exception;
 use League\Uri\Components\Query;
 use League\Uri\Http;
 use League\Uri\QueryString;
 use Myerscode\Utilities\Web\Data\CheckWith;
 use Myerscode\Utilities\Web\Exceptions\CurlInitException;
 use Myerscode\Utilities\Web\Exceptions\EmptyUrlException;
+use Myerscode\Utilities\Web\Exceptions\InvalidQueryParamsException;
 use Myerscode\Utilities\Web\Exceptions\InvalidUrlException;
 use Myerscode\Utilities\Web\Exceptions\UnsupportedCheckMethodException;
 use Myerscode\Utilities\Web\Resource\Response;
@@ -360,6 +360,11 @@ class UriUtility
         return 'https' === strtolower($this->scheme());
     }
 
+    /**
+     * Get the query string from a given input
+     *
+     * @throws InvalidQueryParamsException
+     */
     private function parseInputQuery(string|array $params): string
     {
         if (is_string($params)) {
@@ -368,7 +373,7 @@ class UriUtility
             if (is_array($params)) {
                 $queryString = Query::createFromParams($params)->toString();
             } else {
-                throw new \Exception();
+                throw new InvalidQueryParamsException();
             }
         }
 
@@ -393,9 +398,9 @@ class UriUtility
     /**
      * Add or override query parameters to the uri
      *
-     * @param $params
+     * @param string|array $params
      * @return $this
-     * @throws Exception
+     * @throws InvalidQueryParamsException
      */
     public function addQueryParameter(string|array $params): static
     {
@@ -418,7 +423,13 @@ class UriUtility
         return new self($this->http->withQuery($newQueryString));
     }
 
-
+    /**
+     * Add or override query parameters to the uri
+     *
+     * @param string|array $params
+     * @return $this
+     * @throws InvalidQueryParamsException
+     */
     public function mergeQuery(string|array $params): static
     {
         $queryString = $this->parseInputQuery($params);
