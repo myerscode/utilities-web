@@ -23,16 +23,20 @@
     }
   ],
   "require": {
-    "php": "^7.0|^8.0",
+    "php": "^8.1",
     "ext-curl": "*",
-    "imangazaliev/didom": "^1.14",
+    "imangazaliev/didom": "^2.0.1",
     "laminas/laminas-http": "^2.0",
-    "league/uri": "^5.3",
-    "symfony/dom-crawler": "^4.2"
+    "league/uri": "^6.8.0",
+    "symfony/dom-crawler": "^4.2",
+    "php-curl-class/php-curl-class": "^9.14",
+    "league/uri-components": "^2.4"
   },
   "require-dev": {
+    "friendsofphp/php-cs-fixer": "^3.4",
     "mockery/mockery": "^1.2",
-    "phpunit/phpunit": "^8.0|^9.0"
+    "phpunit/phpunit": "^9.0",
+    "donatj/mock-webserver": "^2.6"
   },
   "autoload": {
     "psr-4": {
@@ -43,5 +47,10 @@
     "psr-4": {
       "Tests\\": "tests/"
     }
+  },
+  "scripts": {
+    "tests": "vendor/bin/phpunit --testdox --no-coverage --colors=always",
+    "test-coverage": "XDEBUG_MODE=coverage vendor/bin/phpunit --testdox --colors=always",
+    "lint-fix": "vendor/bin/php-cs-fixer fix"
   }
 }

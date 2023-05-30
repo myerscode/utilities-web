@@ -2,44 +2,34 @@
 
 namespace Myerscode\Utilities\Web;
 
-
 class PingUtility
 {
     /**
      * The url ping
-     *
-     * @var UriUtility $uri
      */
-    private $uri;
+    private readonly UriUtility $uriUtility;
 
-    /**
-     * @var int
-     */
-    private $ttl = 255;
+    private int $ttl = 255;
 
     /**
      * How long to wait in seconds before timing out requests
-     *
-     * @var int
      */
-    private $timeout = 1;
+    private int $timeout = 1;
 
     /**
-     * Utility constructor.
-     *
-     * @param string $url
+     * ClientUtility constructor.
      */
     public function __construct(string $url)
     {
-        $this->uri = new UriUtility($url);
+        $this->uriUtility = new UriUtility($url);
     }
 
     /**
      * Ping a urls host
      *
-     * @return array
+     * @return array{alive: false, latency: null}
      */
-    public function ping()
+    public function ping(): array
     {
         $ping = [
             'alive' => false,
@@ -50,7 +40,7 @@ class PingUtility
 
         $timeout = escapeshellcmd($this->timeout);
 
-        $host = escapeshellcmd($this->uri->host());
+        $host = escapeshellcmd($this->uriUtility->host());
 
 
         if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
@@ -76,7 +66,7 @@ class PingUtility
         $output = array_values(array_filter($output));
 
         if (!empty($output[1])) {
-            $response = preg_match("/time(?:=|<)(?<time>[\.0-9]+)(?:|\s)ms/", $output[1], $matches);
+            $response = preg_match("#time(?:=|<)(?<time>[\.0-9]+)(?:|\s)ms#", $output[1], $matches);
             if ($response > 0 && isset($matches['time'])) {
                 $ping['alive'] = true;
                 $ping['latency'] = round($matches['time']);

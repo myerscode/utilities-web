@@ -1,4 +1,4 @@
-# Content Utility
+# Content ClientUtility
 The content utility will allow you to simply get and interact with a URIs content
 
 ```php

@@ -6,10 +6,11 @@ use Exception;
 use Myerscode\Utilities\Web\ContentUtility;
 use Myerscode\Utilities\Web\Exceptions\ContentNotFoundException;
 use Myerscode\Utilities\Web\Exceptions\UnreachableContentException;
+use Myerscode\Utilities\Web\Resource\Dom;
 use Tests\BaseContentSuite;
 use Tests\TestResponse;
 
-class ContentTest extends BaseContentSuite
+class DomTest extends BaseContentSuite
 {
     /**
      * Check that content turns html from a valid url
@@ -20,7 +21,7 @@ class ContentTest extends BaseContentSuite
 
         self::$server->setResponseOfPath('', new TestResponse('', [], 404));
 
-        $this->utility(self::serverUrl())->content();
+        $this->utility(self::serverUrl())->dom();
     }
 
     /**
@@ -30,7 +31,10 @@ class ContentTest extends BaseContentSuite
     {
         self::$server->setResponseOfPath('', new TestResponse('<html><h1>Hello World</h1></html>', [], 200));
 
-        $this->assertSame('<html><h1>Hello World</h1></html>', $this->utility(self::serverUrl())->content());
+        $expected = new Dom('<html><h1>Hello World</h1></html>');
+        $dom = $this->utility(self::serverUrl())->dom();
+        $this->assertInstanceOf(Dom::class, $dom);
+        $this->assertSame($expected->html(), $this->utility(self::serverUrl())->dom()->html());
     }
 
     /**
@@ -49,6 +53,6 @@ class ContentTest extends BaseContentSuite
             ->method('response')
             ->willThrowException(new Exception());
 
-        $mock->content();
+        $mock->dom();
     }
 }

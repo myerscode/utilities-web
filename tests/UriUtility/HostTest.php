@@ -2,27 +2,22 @@
 
 namespace Tests\UriUtility;
 
-use Tests\BaseUrlSuite;
+use Iterator;
+use Tests\BaseUriSuite;
 
-/**
- * @coversDefaultClass \Myerscode\Utilities\Web\UriUtility
- */
-class HostTest extends BaseUrlSuite
+class HostTest extends BaseUriSuite
 {
-
-    public function dataProvider()
+    public static function dataProvider(): Iterator
     {
-        return [
-            ['www.foo.bar', 'http://www.foo.bar'],
-            ['www.foo.bar', 'www.foo.bar'],
-            ['www.foo.bar', 'https://www.foo.bar'],
-            ['foo.bar', 'http://foo.bar'],
-            ['foo.bar', 'https://foo.bar'],
-            ['www.foo.bar', 'www.foo.bar'],
-            ['8.8.8.8', '8.8.8.8'],
-            ['localhost', 'localhost'],
-            ['www.foo.bar', 'www.foo.bar?hello=world'],
-        ];
+        yield ['www.foo.bar', 'http://www.foo.bar'];
+        yield ['www.foo.bar', 'www.foo.bar'];
+        yield ['www.foo.bar', 'https://www.foo.bar'];
+        yield ['foo.bar', 'http://foo.bar'];
+        yield ['foo.bar', 'https://foo.bar'];
+        yield ['www.foo.bar', 'www.foo.bar'];
+        yield ['8.8.8.8', '8.8.8.8'];
+        yield ['localhost', 'localhost'];
+        yield ['www.foo.bar', 'www.foo.bar?hello=world'];
     }
 
     /**
@@ -31,11 +26,10 @@ class HostTest extends BaseUrlSuite
      * @param number $expected The value expected to be returned
      * @param number $string The value to pass to the utility
      * @dataProvider dataProvider
-     * @covers ::isHttps
      */
-    public function testExpectedHost($expected, $string)
+    public function testExpectedHost(string $expected, string $string): void
     {
-        $this->assertEquals($expected, $this->utility($string)->host());
+        $this->assertSame($expected, $this->utility($string)->host());
     }
 
 }

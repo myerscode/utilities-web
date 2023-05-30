@@ -4,6 +4,6 @@ namespace Myerscode\Utilities\Web\Exceptions;
 
 use Exception;
 
-class UnsupportedCheckMethodException extends Exception
+class InvalidQueryParamsException extends Exception
 {
 }

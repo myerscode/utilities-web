@@ -2,66 +2,48 @@
 
 namespace Myerscode\Utilities\Web;
 
+use Curl\Curl;
 use League\Uri\Components\Query;
 use League\Uri\Http;
-use League\Uri\QueryBuilder;
-use League\Uri\QueryParser;
+use League\Uri\QueryString;
+use Myerscode\Utilities\Web\Data\CheckWith;
 use Myerscode\Utilities\Web\Exceptions\CurlInitException;
 use Myerscode\Utilities\Web\Exceptions\EmptyUrlException;
+use Myerscode\Utilities\Web\Exceptions\InvalidQueryParamsException;
 use Myerscode\Utilities\Web\Exceptions\InvalidUrlException;
 use Myerscode\Utilities\Web\Exceptions\UnsupportedCheckMethodException;
 use Myerscode\Utilities\Web\Resource\Response;
+use Psr\Http\Message\UriInterface as Psr7UriInterface;
 
 class UriUtility
 {
-
-    const DEFAULT_SCHEME = 'http://';
-
     /**
-     * @var QueryParser
+     * @var string
      */
-    private $parser;
+    final public const DEFAULT_SCHEME = 'http://';
 
-    /**
-     * @var QueryBuilder
-     */
-    private $builder;
+    private ?Http $http = null;
 
-    /**
-     * @var Http $uri
-     */
-    private $uri;
-
-    /**
-     * @var int
-     */
-    private $ttl = 255;
+    private int $ttl = 255;
 
     /**
      * How long to wait before timing out requests
-     *
-     * @var int
      */
-    private $timeout = 10;
+    private int $timeout = 10;
 
     /**
      * Should follow redirects
-     *
-     * @var bool
      */
-    private $followRedirects = false;
+    private bool $followRedirects = false;
 
+    protected int $maxRedirects = 10;
 
     /**
-     * Utility constructor.
-     *
-     * @param string $uri
+     * ClientUtility constructor.
      */
     public function __construct(string $uri)
     {
         $this->setUrl($uri);
-        $this->parser = new QueryParser();
-        $this->builder = new QueryBuilder();
     }
 
     /**
@@ -70,18 +52,18 @@ class UriUtility
      * @param $uri
      * @return $this
      */
-    private function setUrl($uri)
+    private function setUrl(string|Http|Psr7UriInterface $uri)
     {
-        $trimmed = trim($uri);
+        $trimmed = trim((string) $uri);
 
         // check if a scheme is present, if not we need to give it one
-        preg_match_all('/(https:\/\/)|(http:\/\/)/', $trimmed, $matches, PREG_SET_ORDER, 0);
+        preg_match_all('#(https:\/\/)|(http:\/\/)#', $trimmed, $matches, PREG_SET_ORDER, 0);
 
-        if (empty($matches)) {
+        if ($matches === []) {
             $trimmed = self::DEFAULT_SCHEME . $trimmed;
         }
 
-        $this->uri = Http::createFromString($trimmed);
+        $this->http = Http::createFromString($trimmed);
 
         return $this;
     }
@@ -98,16 +80,10 @@ class UriUtility
 
     /**
      * Get the current URI
-     *
-     * @return string
      */
-    public function value()
+    public function value(): string
     {
-        $scheme = (empty($scheme = $this->scheme())) ? 'http://' : $scheme . '://';
-
-        $query = (empty($query = $this->query())) ? '' : '?' . $query;
-
-        return $scheme . $this->host() . $this->path() . urldecode($query);
+        return urldecode((string)$this->http);
     }
 
     /**
@@ -117,7 +93,7 @@ class UriUtility
      */
     public function scheme()
     {
-        return $this->uri->getScheme();
+        return $this->http->getScheme();
     }
 
     /**
@@ -127,7 +103,7 @@ class UriUtility
      */
     public function query()
     {
-        return $this->uri->getQuery();
+        return $this->http->getQuery();
     }
 
     /**
@@ -137,7 +113,7 @@ class UriUtility
      */
     public function host()
     {
-        return $this->uri->getHost();
+        return $this->http->getHost();
     }
 
     /**
@@ -147,7 +123,17 @@ class UriUtility
      */
     public function path()
     {
-        return $this->uri->getPath();
+        return $this->http->getPath();
+    }
+
+    /**
+     * Get the port of the URI
+     *
+     * @return int|null
+     */
+    public function port(): int|null
+    {
+        return $this->http->getPort();
     }
 
     /**
@@ -155,7 +141,7 @@ class UriUtility
      *
      * @return int The current ttl for Ping.
      */
-    public function ttl()
+    public function ttl(): int
     {
         return $this->ttl;
     }
@@ -164,10 +150,8 @@ class UriUtility
      * Set the ttl (in hops).
      *
      * @param int $ttl TTL in hops.
-     *
-     * @return $this
      */
-    public function setTtl($ttl): UriUtility
+    public function setTtl(int $ttl): UriUtility
     {
         $this->ttl = $ttl;
 
@@ -178,10 +162,8 @@ class UriUtility
      * Set the timeout.
      *
      * @param int $timeout Time to wait in seconds.
-     *
-     * @return $this
      */
-    public function setTimeout($timeout): UriUtility
+    public function setTimeout(int $timeout): UriUtility
     {
         $this->timeout = $timeout;
 
@@ -190,9 +172,6 @@ class UriUtility
 
     /**
      * Set whether or the utility should follow redirects
-     *
-     * @param bool $followRedirects
-     * @return $this
      */
     public function setFollowRedirects(bool $followRedirects): UriUtility
     {
@@ -204,39 +183,24 @@ class UriUtility
     /**
      * Check the response from the uri
      *
-     * @param string $method
-     * @return Response
      * @throws EmptyUrlException
      * @throws InvalidUrlException
      * @throws UnsupportedCheckMethodException
      * @throws CurlInitException
      */
-    public function check(string $method = Utility::METHOD_CURL): Response
+    public function check(string|CheckWith $method): Response
     {
-        switch ($method) {
-            case Utility::METHOD_CURL:
-                $response = $this->checkWithCurl();
-                break;
-
-            case Utility::METHOD_HEADERS:
-                $response = $this->checkWithHeaders();
-                break;
-
-            case Utility::METHOD_HTTP:
-                $response = $this->checkWithHttpClient();
-                break;
-
-            default:
-                throw new UnsupportedCheckMethodException();
-        }
-
-        return $response;
+        return match ($method) {
+            CheckWith::CURL => $this->checkWithCurl(),
+            CheckWith::HEADERS => $this->checkWithHeaders(),
+            CheckWith::HTTP => $this->checkWithHttpClient(),
+            default => throw new UnsupportedCheckMethodException(),
+        };
     }
 
     /**
      * Get response from the uri
      *
-     * @return Response
      * @throws EmptyUrlException
      * @throws InvalidUrlException
      */
@@ -244,19 +208,16 @@ class UriUtility
     {
         $this->checkUrl();
 
-        $client = Utility::client($this->uri());
+        $client = ClientUtility::client($this->uri());
 
         $response = $client->send();
 
-        $response->getStatusCode();
-
-        return new Response(intval($response->getStatusCode()), $response->getBody());
+        return new Response($response->getStatusCode(), $response->getBody());
     }
 
     /**
      * Check the url exists using curl
      *
-     * @return Response
      * @throws EmptyUrlException
      * @throws InvalidUrlException
      * @throws CurlInitException
@@ -264,41 +225,27 @@ class UriUtility
     public function checkWithCurl(): Response
     {
         $this->checkUrl();
+        $curl = new Curl();
+        $curl->setUrl($this->value());
 
-        $uri = $this->value();
-
-        $curl = @curl_init($uri);
-
-        if ($curl === false) {
-            throw new CurlInitException();
-        }
-
-        @curl_setopt($curl, CURLOPT_HEADER, true);
-        @curl_setopt($curl, CURLOPT_NOBODY, true);
-        @curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+        $curl->setOpts([
+            CURLOPT_HEADER => true,
+            CURLOPT_NOBODY => true,
+            CURLOPT_RETURNTRANSFER => true,
+        ]);
 
         if ($this->followRedirects()) {
-            @curl_setopt($curl, CURLOPT_FOLLOWLOCATION, true);
-            @curl_setopt($curl, CURLOPT_MAXREDIRS, 10);
+            $curl->setFollowLocation();
+            $curl->setMaximumRedirects($this->maxRedirects);
         } else {
-            @curl_setopt($curl, CURLOPT_FOLLOWLOCATION, false);
+            $curl->setFollowLocation(false);
         }
 
-        @curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, $this->timeout());
-        @curl_setopt($curl, CURLOPT_TIMEOUT, $this->timeout());
+        $curl->setTimeout($this->timeout());
+        $curl->setConnectTimeout($this->timeout());
+        $curl->exec();
 
-        @curl_exec($curl);
-
-        if (@curl_errno($curl)) {
-            // TODO handle curl errors
-            $code = 404;
-        } else {
-            $code = @curl_getinfo($curl, CURLINFO_HTTP_CODE);
-        }
-
-        @curl_close($curl);
-
-        return new Response(intval($code));
+        return new Response($curl->getHttpStatusCode());
     }
 
     /**
@@ -312,6 +259,7 @@ class UriUtility
         if (empty($this->value())) {
             throw new EmptyUrlException();
         }
+
         if (filter_var($this->value(), FILTER_VALIDATE_URL) === false) {
             throw new InvalidUrlException();
         }
@@ -319,8 +267,6 @@ class UriUtility
 
     /**
      * Should follow redirects
-     *
-     * @return bool
      */
     public function followRedirects(): bool
     {
@@ -332,7 +278,7 @@ class UriUtility
      *
      * @return int Current timeout for Ping.
      */
-    public function timeout()
+    public function timeout(): int
     {
         return $this->timeout;
     }
@@ -340,7 +286,6 @@ class UriUtility
     /**
      * Check the url exists using headers
      *
-     * @return Response
      * @throws EmptyUrlException
      * @throws InvalidUrlException
      */
@@ -373,12 +318,12 @@ class UriUtility
 
             $header = $headers[0];
 
-            if (preg_match('/^HTTP\/\S+\s+([1-9][0-9][0-9])\s+.*/', $header, $matches)) {
+            if (preg_match('#^HTTP\/\S+\s+([1-9]\d\d)\s+.*#', (string) $header, $matches)) {
                 $code = $matches[1];
             }
         }
 
-        return new Response(intval($code));
+        return new Response((int) $code);
     }
 
     /**
@@ -387,9 +332,8 @@ class UriUtility
      * @param null $numeric_prefix
      * @param null $arg_separator
      * @param int $enc_type
-     * @return string
      */
-    public function getQueryString($numeric_prefix = null, $arg_separator = null, $enc_type = PHP_QUERY_RFC1738)
+    public function getQueryString($numeric_prefix = null, $arg_separator = null, $enc_type = PHP_QUERY_RFC1738): string
     {
         return http_build_query($this->getQueryParameters(), $numeric_prefix, $arg_separator, $enc_type);
     }
@@ -397,9 +341,9 @@ class UriUtility
     /**
      * Get an array of query parameters from the URL
      *
-     * @return array
+     * @return string[]|mixed[][]
      */
-    public function getQueryParameters()
+    public function getQueryParameters(): array
     {
         $parameters = [];
 
@@ -410,12 +354,30 @@ class UriUtility
 
     /**
      * Check if the URL is set to url HTTPS
-     *
-     * @return bool
      */
-    public function isHttps()
+    public function isHttps(): bool
     {
         return 'https' === strtolower($this->scheme());
+    }
+
+    /**
+     * Get the query string from a given input
+     *
+     * @throws InvalidQueryParamsException
+     */
+    private function parseInputQuery(string|array $params): string
+    {
+        if (is_string($params)) {
+            $queryString = Query::createFromPairs(QueryString::parse(ltrim(trim($params), '?')))->toString();
+        } else {
+            if (is_array($params)) {
+                $queryString = Query::createFromParams($params)->toString();
+            } else {
+                throw new InvalidQueryParamsException();
+            }
+        }
+
+        return $queryString;
     }
 
     /**
@@ -424,49 +386,76 @@ class UriUtility
      * @param $query
      * @return $this
      */
-    public function setQuery($query)
+    public function setQuery(string|array $query)
     {
-        if (is_array($query)) {
-            $queryString = Query::createFromPairs($query);
-        } else {
-            $queryString = new Query(rtrim($query, '?'));
-        }
+        $queryString = $this->parseInputQuery($query);
 
-        $this->setUrl($this->uri->withQuery($queryString));
+        $this->setUrl($this->http->withQuery($queryString));
 
-        return $this;
+        return new self();
     }
 
     /**
      * Add or override query parameters to the uri
      *
-     * @param $params
+     * @param string|array $params
      * @return $this
-     * @throws \Exception
+     * @throws InvalidQueryParamsException
      */
-    public function addQueryParameter($params)
+    public function addQueryParameter(string|array $params): static
     {
-        if (is_string($params)) {
-            $params = $this->parser->convert($this->parser->parse($params));
-        } else {
-            if (is_array($params)) {
-                $params = $this->parser->convert($params);
-            } else {
-                throw new \Exception();
-            }
+        $queryString = $this->parseInputQuery($params);
+
+        if (empty($queryString)) {
+            return $this;
         }
 
-        $params = array_merge($this->parser->convert($this->parser->parse($this->uri->getQuery())), $params);
+        $currentQueryString = urldecode($this->http->getQuery());
 
-        $this->setUrl($this->uri->withQuery($this->builder->build($params)));
+        $currentQueryPairs = QueryString::parse($currentQueryString);
 
-        return $this;
+        $filteredPairs = array_filter($currentQueryPairs, fn ($v) => $v !== ['', null]);
+
+        $currentQuery = Query::createFromPairs($filteredPairs);
+
+        $newQueryString = $currentQuery->append($queryString)->toString();
+
+        return new self($this->http->withQuery($newQueryString));
     }
+
+    /**
+     * Add or override query parameters to the uri
+     *
+     * @param string|array $params
+     * @return $this
+     * @throws InvalidQueryParamsException
+     */
+    public function mergeQuery(string|array $params): static
+    {
+        $queryString = $this->parseInputQuery($params);
+
+        if (empty($queryString)) {
+            return $this;
+        }
+
+        $currentQueryString = urldecode($this->http->getQuery());
+
+        $currentQueryPairs = QueryString::parse($currentQueryString);
+
+        $filteredPairs = array_filter($currentQueryPairs, fn ($v) => $v !== ['', null]);
+
+        $currentQuery = Query::createFromPairs($filteredPairs);
+
+        $newQueryString = $currentQuery->merge($queryString)->toString();
+
+        return new self($this->http->withQuery($newQueryString));
+    }
+
+
 
     /**
      * Check the url exists using a http client
      *
-     * @return Response
      * @throws EmptyUrlException
      * @throws InvalidUrlException
      */
