@@ -7,23 +7,14 @@ use Tests\BasePingSuite;
 
 class SystemPingTest extends BasePingSuite
 {
-    public static function dataProvider(): Iterator
+    public function testPingValidUrl(): void
     {
-        yield 'ip' => [true, '8.8.8.8'];
-        yield 'valid url' => [true, 'https://myerscode.com'];
-        yield 'invalid url' => [false, 'https://not.a.real.domain'];
+        $this->assertTrue($this->utility(self::serverUrl())->ping()['alive']);
     }
 
-    /**
-     * Check that the url is correctly assigned in the constructor
-     *
-     * @dataProvider dataProvider
-     * @param $expected
-     * @param $url
-     */
-    public function testPing(bool $expected, string $url): void
+    public function testPingInvalidUrl(): void
     {
-        $this->assertEquals($expected, $this->utility($url)->ping()['alive']);
+        $this->assertFalse($this->utility('https://not.a.real.domain')->ping()['alive']);
     }
 
 }

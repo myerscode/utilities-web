@@ -3,9 +3,8 @@
 namespace Tests;
 
 use Myerscode\Utilities\Web\PingUtility;
-use PHPUnit\Framework\TestCase;
 
-abstract class BasePingSuite extends TestCase
+abstract class BasePingSuite extends BaseSuite
 {
     /**
      * @param $url

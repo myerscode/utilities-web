@@ -13,6 +13,10 @@ class BaseSuite extends TestCase
     {
         return self::$server->getServerRoot() . $path;
     }
+    public static function serverIP(string $path = ''): string
+    {
+        return self::$server->getServerRoot() . $path;
+    }
 
     public static function setUpBeforeClass(): void
     {

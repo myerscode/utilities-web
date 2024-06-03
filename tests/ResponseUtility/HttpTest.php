@@ -1,12 +1,12 @@
 <?php
 
-namespace Tests\UriUtility;
+namespace Tests\ResponseUtility;
 
 use Iterator;
-use Tests\BaseUriSuite;
+use Tests\BaseResponseSuite;
 use Tests\TestResponse;
 
-class CurlTest extends BaseUriSuite
+class HttpTest extends BaseResponseSuite
 {
     public static function dataProvider(): Iterator
     {
@@ -18,18 +18,18 @@ class CurlTest extends BaseUriSuite
     }
 
     /**
-     * Check that the url exists using curl
+     * Check that the url exists using http
      *
      * @dataProvider dataProvider
      *
      * @param $url
      * @param $expected
      */
-    public function testCheckWithCurl(string $path, int $expected): void
+    public function testCheckWithHttp(string $path, int $expected): void
     {
         self::$server->setResponseOfPath($path, new TestResponse($path, [], $expected));
 
-        $response = $this->utility(self::serverUrl($path))->checkWithCurl();
+        $response = $this->utility(self::serverUrl($path))->fromHttpClient();
 
         $this->assertSame($expected, $response->code());
     }

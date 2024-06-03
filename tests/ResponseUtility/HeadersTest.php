@@ -1,12 +1,12 @@
 <?php
 
-namespace Tests\UriUtility;
+namespace Tests\ResponseUtility;
 
 use Iterator;
-use Tests\BaseUriSuite;
+use Tests\BaseResponseSuite;
 use Tests\TestResponse;
 
-class HeadersTest extends BaseUriSuite
+class HeadersTest extends BaseResponseSuite
 {
     public static function dataProvider(): Iterator
     {
@@ -18,8 +18,6 @@ class HeadersTest extends BaseUriSuite
     }
 
     /**
-     * Check that the url exists using headers
-     *
      * @dataProvider dataProvider
      *
      * @param $url
@@ -29,7 +27,7 @@ class HeadersTest extends BaseUriSuite
     {
         self::$server->setResponseOfPath($path, new TestResponse($path, [], $expected));
 
-        $response = $this->utility(self::serverUrl($path))->checkWithHeaders();
+        $response = $this->utility(self::serverUrl($path))->fromHeaders();
 
         $this->assertSame($expected, $response->code());
     }

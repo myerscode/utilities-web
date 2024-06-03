@@ -2,10 +2,9 @@
 
 namespace Myerscode\Utilities\Web\Data;
 
-enum CheckWith: string
+enum ResponseFrom: string
 {
     case CURL = 'curl';
     case HEADERS = 'headers';
-
     case HTTP = 'http';
 }
