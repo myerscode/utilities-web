@@ -8,16 +8,11 @@ use League\Uri\Http;
 use Myerscode\Utilities\Web\Data\ResponseFrom;
 use Myerscode\Utilities\Web\Exceptions\CurlInitException;
 use Myerscode\Utilities\Web\Exceptions\EmptyUrlException;
-use Myerscode\Utilities\Web\Exceptions\FiveHundredResponseException;
-use Myerscode\Utilities\Web\Exceptions\FourHundredResponseException;
 use Myerscode\Utilities\Web\Exceptions\InvalidUrlException;
-use Myerscode\Utilities\Web\Exceptions\MaxRedirectsReachedException;
-use Myerscode\Utilities\Web\Exceptions\NetworkErrorException;
 use Myerscode\Utilities\Web\Exceptions\UnsupportedCheckMethodException;
 use Myerscode\Utilities\Web\Resource\Response;
 use Psr\Http\Message\UriInterface as Psr7UriInterface;
 use Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface;
-use Symfony\Contracts\HttpClient\Exception\RedirectionExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\ServerExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
 
@@ -66,7 +61,7 @@ class ResponseUtility
             $trimmed = self::DEFAULT_SCHEME . $trimmed;
         }
 
-        $this->http = Http::createFromString($trimmed);
+        $this->http = Http::new($trimmed);
 
         $this->checkUrl();
     }

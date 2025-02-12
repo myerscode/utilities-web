@@ -2,8 +2,8 @@
 
 namespace Myerscode\Utilities\Web\Resource;
 
-use DiDom\Document;
+use Symfony\Component\DomCrawler\Crawler;
 
-class Dom extends Document
+class Dom extends Crawler
 {
 }
