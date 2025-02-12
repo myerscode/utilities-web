@@ -2,19 +2,24 @@
 
 namespace Tests\PingUtility;
 
-use Iterator;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\BasePingSuite;
 
 class SystemPingTest extends BasePingSuite
 {
-    public function testPingValidUrl(): void
+    public static function dataProvider(): array
     {
-        $this->assertTrue($this->utility(self::serverUrl())->ping()['alive']);
+        return [
+            'ip' => [true, '8.8.8.8'],
+            'valid url' => [true, 'https://myerscode.com'],
+            'invalid url' => [false, 'https://not.a.real.domain'],
+        ];
     }
 
-    public function testPingInvalidUrl(): void
+    #[DataProvider('dataProvider')]
+    public function testPing(bool $expected, string $url): void
     {
-        $this->assertFalse($this->utility('https://not.a.real.domain')->ping()['alive']);
+        $this->assertEquals($expected, $this->utility($url)->ping()['alive']);
     }
 
 }

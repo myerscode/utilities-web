@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8"/>
+        <title>Test Documentation</title>
+        <style>
+            body {
+                text-rendering: optimizeLegibility;
+                font-family: Source SansSerif Pro, Arial, sans-serif;
+                font-variant-ligatures: common-ligatures;
+                font-kerning: normal;
+                margin-left: 2rem;
+                background-color: #fff;
+                color: #000;
+            }
+
+            body > ul > li {
+                font-size: larger;
+            }
+
+            h2 {
+                font-size: larger;
+                text-decoration-line: underline;
+                text-decoration-thickness: 2px;
+                margin: 0;
+                padding: 0.5rem 0;
+            }
+
+            ul {
+                list-style: none;
+                margin: 0 0 2rem;
+                padding: 0 0 0 1rem;
+                text-indent: -1rem;
+            }
+
+            .success:before {
+                color: #4e9a06;
+                content: '✓';
+                padding-right: 0.5rem;
+            }
+
+            .defect {
+                color: #a40000;
+            }
+
+            .defect:before {
+                color: #a40000;
+                content: '✗';
+                padding-right: 0.5rem;
+            }
+        </style>
+    </head>
+    <body>
+        <h2>Add Query Params (Tests\UriUtility\AddQueryParams)</h2>
+        <ul>
+            <li class="success">Add query params with data set "add query by string"</li>
+            <li class="success">Add query params with data set "add query by array"</li>
+            <li class="success">Add query params with data set "add another query by string"</li>
+            <li class="success">Add query params with data set "add another query by array"</li>
+            <li class="success">Add query params with data set "override another query by string"</li>
+            <li class="success">Add query params with data set "override another query by array"</li>
+        </ul>
+        <h2>Construct (Tests\ContentUtility\Construct)</h2>
+        <ul>
+            <li class="success">Constructor with data set #0</li>
+            <li class="defect">Constructor with data set #1</li>
+            <li class="success">Constructor with data set #2</li>
+            <li class="success">Constructor with data set #3</li>
+            <li class="success">Constructor with data set #4</li>
+            <li class="defect">Constructor with data set #5</li>
+            <li class="defect">Constructor with data set #6</li>
+            <li class="defect">Constructor with data set #7</li>
+            <li class="defect">Constructor with data set #8</li>
+            <li class="defect">Constructor with data set #9</li>
+        </ul>
+        <h2>Construct (Tests\PingUtility\Construct)</h2>
+        <ul>
+            <li class="success">Constructor with data set #0</li>
+            <li class="success">Constructor with data set #1</li>
+            <li class="success">Constructor with data set #2</li>
+            <li class="success">Constructor with data set #3</li>
+            <li class="success">Constructor with data set #4</li>
+            <li class="success">Constructor with data set #5</li>
+            <li class="success">Constructor with data set #6</li>
+            <li class="success">Constructor with data set #7</li>
+            <li class="success">Constructor with data set #8</li>
+            <li class="success">Constructor with data set #9</li>
+        </ul>
+        <h2>Construct (Tests\UriUtility\Construct)</h2>
+        <ul>
+            <li class="success">Expected is alpha with data set #0</li>
+            <li class="defect">Expected is alpha with data set #1</li>
+            <li class="success">Expected is alpha with data set #2</li>
+            <li class="success">Expected is alpha with data set #3</li>
+            <li class="success">Expected is alpha with data set #4</li>
+            <li class="defect">Expected is alpha with data set #5</li>
+            <li class="defect">Expected is alpha with data set #6</li>
+            <li class="defect">Expected is alpha with data set #7</li>
+            <li class="defect">Expected is alpha with data set #8</li>
+            <li class="defect">Expected is alpha with data set #9</li>
+        </ul>
+        <h2>Content (Tests\ContentUtility\Content)</h2>
+        <ul>
+            <li class="success">Content not found exception thrown</li>
+            <li class="defect">Expected content</li>
+            <li class="defect">Unreachable content exception thrown</li>
+        </ul>
+        <h2>Curl (Tests\ResponseUtility\Curl)</h2>
+        <ul>
+            <li class="defect">Check with curl with data set "responds with 200"</li>
+            <li class="defect">Check with curl with data set "responds with 300"</li>
+            <li class="defect">Check with curl with data set "responds with 400"</li>
+            <li class="defect">Check with curl with data set "responds with 404"</li>
+            <li class="defect">Check with curl with data set "responds with 500"</li>
+        </ul>
+        <h2>Dom (Tests\ContentUtility\Dom)</h2>
+        <ul>
+            <li class="defect">Content not found exception thrown</li>
+            <li class="defect">Expected content</li>
+            <li class="success">Unreachable content exception thrown</li>
+        </ul>
+        <h2>Headers (Tests\ResponseUtility\Headers)</h2>
+        <ul>
+            <li class="defect">Check with headers with data set "responds with 200"</li>
+            <li class="defect">Check with headers with data set "responds with 300"</li>
+            <li class="defect">Check with headers with data set "responds with 400"</li>
+            <li class="defect">Check with headers with data set "responds with 404"</li>
+            <li class="defect">Check with headers with data set "responds with 500"</li>
+        </ul>
+        <h2>Host (Tests\UriUtility\Host)</h2>
+        <ul>
+            <li class="success">Expected host with data set #0</li>
+            <li class="success">Expected host with data set #1</li>
+            <li class="success">Expected host with data set #2</li>
+            <li class="success">Expected host with data set #3</li>
+            <li class="success">Expected host with data set #4</li>
+            <li class="success">Expected host with data set #5</li>
+            <li class="success">Expected host with data set #6</li>
+            <li class="success">Expected host with data set #7</li>
+            <li class="success">Expected host with data set #8</li>
+        </ul>
+        <h2>Http (Tests\ResponseUtility\Http)</h2>
+        <ul>
+            <li class="defect">Check with http with data set "responds with 200"</li>
+            <li class="defect">Check with http with data set "responds with 300"</li>
+            <li class="defect">Check with http with data set "responds with 400"</li>
+            <li class="defect">Check with http with data set "responds with 404"</li>
+            <li class="defect">Check with http with data set "responds with 500"</li>
+        </ul>
+        <h2>Is Https (Tests\UriUtility\IsHttps)</h2>
+        <ul>
+            <li class="success">Expected is https with data set #0</li>
+            <li class="defect">Expected is https with data set #1</li>
+            <li class="success">Expected is https with data set #2</li>
+            <li class="success">Expected is https with data set #3</li>
+            <li class="success">Expected is https with data set #4</li>
+            <li class="defect">Expected is https with data set #5</li>
+            <li class="defect">Expected is https with data set #6</li>
+            <li class="defect">Expected is https with data set #7</li>
+            <li class="defect">Expected is https with data set #8</li>
+            <li class="defect">Expected is https with data set #9</li>
+        </ul>
+        <h2>Merge Query (Tests\UriUtility\MergeQuery)</h2>
+        <ul>
+            <li class="success">Add query params with data set "empty query"</li>
+            <li class="success">Add query params with data set "add query by string"</li>
+            <li class="success">Add query params with data set "add query by array"</li>
+            <li class="success">Add query params with data set "add another query by string"</li>
+            <li class="success">Add query params with data set "add another query by array"</li>
+            <li class="success">Add query params with data set "override another query by string"</li>
+            <li class="success">Add query params with data set "override another query by array"</li>
+        </ul>
+        <h2>Port (Tests\UriUtility\Port)</h2>
+        <ul>
+            <li class="success">Expected port with data set "http not set"</li>
+            <li class="success">Expected port with data set "https not set"</li>
+            <li class="success">Expected port with data set "8080 set"</li>
+        </ul>
+        <h2>System Ping (Tests\PingUtility\SystemPing)</h2>
+        <ul>
+            <li class="success">Ping with data set "ip"</li>
+            <li class="success">Ping with data set "valid url"</li>
+            <li class="success">Ping with data set "invalid url"</li>
+        </ul>
+    </body>
+</html>

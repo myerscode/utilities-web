@@ -2,23 +2,25 @@
 
 namespace Tests\ContentUtility;
 
-use Iterator;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\BaseContentSuite;
 
 class ConstructTest extends BaseContentSuite
 {
-    public static function dataProvider(): Iterator
+    public static function dataProvider(): array
     {
-        yield ['http://www.foo.bar', 'http://www.foo.bar'];
-        yield ['http://www.foo.bar', 'www.foo.bar'];
-        yield ['https://www.foo.bar', 'https://www.foo.bar'];
-        yield ['http://foo.bar', 'http://foo.bar'];
-        yield ['https://foo.bar', 'https://foo.bar'];
-        yield ['http://www.foo.bar', 'www.foo.bar'];
-        yield ['http://foo.bar', 'foo.bar'];
-        yield ['http://localhost', 'localhost'];
-        yield ['http://www.foo.bar?hello=world', 'www.foo.bar?hello=world'];
-        yield ['http://www.foo.bar?hello[]=world&hello[]=world', 'www.foo.bar?hello[]=world&hello[]=world'];
+        return [
+            ['http://www.foo.bar', 'http://www.foo.bar'],
+            ['https://www.foo.bar', 'www.foo.bar'],
+            ['https://www.foo.bar', 'https://www.foo.bar'],
+            ['http://foo.bar', 'http://foo.bar'],
+            ['https://foo.bar', 'https://foo.bar'],
+            ['https://www.foo.bar', 'www.foo.bar'],
+            ['https://foo.bar', 'foo.bar'],
+            ['https://localhost', 'localhost'],
+            ['https://www.foo.bar?hello=world', 'www.foo.bar?hello=world'],
+            ['https://www.foo.bar?hello[]=world&hello[]=world', 'www.foo.bar?hello[]=world&hello[]=world'],
+        ];
     }
 
     /**
@@ -26,11 +28,11 @@ class ConstructTest extends BaseContentSuite
      *
      * @param number $expected The value expected to be returned
      * @param number $string The value to pass to the utility
-     * @dataProvider dataProvider
      */
+    #[DataProvider('dataProvider')]
     public function testConstructor(string $expected, string $string): void
     {
-        $this->assertSame($expected, $this->utility($string)->url());
+        $this->assertEquals($expected, $this->utility($string)->url());
     }
 
 }

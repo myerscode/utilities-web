@@ -4,6 +4,6 @@ namespace Myerscode\Utilities\Web\Exceptions;
 
 use Exception;
 
-class UnreachableContentException extends Exception
+class FiveHundredResponseException extends Exception
 {
 }

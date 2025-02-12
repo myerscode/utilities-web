@@ -6,28 +6,38 @@ class PingUtility
 {
     /**
      * The url ping
+     *
+     * @var UriUtility $uri
      */
-    private readonly UriUtility $uriUtility;
+    private UriUtility $uri;
 
+    /**
+     * @var int
+     */
     private int $ttl = 255;
 
     /**
      * How long to wait in seconds before timing out requests
+     *
+     * @var int
      */
     private int $timeout = 1;
 
     /**
-     * ClientUtility constructor.
+     * Utility constructor.
      */
     public function __construct(string $url)
     {
-        $this->uriUtility = new UriUtility($url);
+        $this->uri = new UriUtility($url);
+    }
+
+    public function url(): string
+    {
+        return $this->uri->value();
     }
 
     /**
      * Ping a urls host
-     *
-     * @return array{alive: false, latency: null}
      */
     public function ping(): array
     {
@@ -40,7 +50,7 @@ class PingUtility
 
         $timeout = escapeshellcmd($this->timeout);
 
-        $host = escapeshellcmd($this->uriUtility->host());
+        $host = escapeshellcmd($this->uri->host());
 
 
         if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
@@ -61,12 +71,12 @@ class PingUtility
 
         $return = [];
 
-        $return = exec($exec_string . ' 2>&1', $output, $return);
+        exec($exec_string . ' 2>&1', $output, $return);
 
         $output = array_values(array_filter($output));
 
-        if (!empty($output[1])) {
-            $response = preg_match("#time(?:=|<)(?<time>[\.0-9]+)(?:|\s)ms#", $output[1], $matches);
+        if (isset($output[1]) && ($output[1] !== '' && $output[1] !== '0')) {
+            $response = preg_match("/time(?:=|<)(?<time>[\.0-9]+)(?:|\s)ms/", $output[1], $matches);
             if ($response > 0 && isset($matches['time'])) {
                 $ping['alive'] = true;
                 $ping['latency'] = round($matches['time']);

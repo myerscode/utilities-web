@@ -2,14 +2,13 @@
 
 namespace Myerscode\Utilities\Web;
 
-use Laminas\Http\Client;
+use Symfony\Contracts\HttpClient\HttpClientInterface;
+use Symfony\Component\HttpClient\HttpClient;
 
 class ClientUtility
 {
     /**
      * Collection of request options to be passed to guzzle
-     *
-     * @var array
      */
     public static array $requestOptions = [
         'timeout' => 60,
@@ -18,8 +17,8 @@ class ClientUtility
     /**
      * Get a http client for utilities to use
      */
-    public static function client(string $url, array $requestOptions = []): Client
+    public static function client(array $requestOptions = []): HttpClientInterface
     {
-        return new Client($url, array_merge([], self::$requestOptions, $requestOptions));
+        return HttpClient::create();
     }
 }

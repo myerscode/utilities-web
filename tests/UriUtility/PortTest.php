@@ -2,6 +2,7 @@
 
 namespace Tests\UriUtility;
 
+use PHPUnit\Framework\Attributes\DataProvider;
 use Iterator;
 use Tests\BaseUriSuite;
 
@@ -14,15 +15,9 @@ class PortTest extends BaseUriSuite
         yield '8080 set' => ['https://example.com:8080', 8080];
     }
 
-    /**
-     * @param  number  $expected  The value expected to be returned
-     * @param  number  $string  The value to pass to the utility
-     *
-     * @dataProvider dataProvider
-     */
+    #[DataProvider('dataProvider')]
     public function testExpectedPort(string $string, ?int $expected): void
     {
         $this->assertSame($expected, $this->utility($string)->port());
     }
-
 }

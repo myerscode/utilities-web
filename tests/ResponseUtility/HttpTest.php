@@ -2,6 +2,7 @@
 
 namespace Tests\ResponseUtility;
 
+use PHPUnit\Framework\Attributes\DataProvider;
 use Iterator;
 use Tests\BaseResponseSuite;
 use Tests\TestResponse;
@@ -17,14 +18,7 @@ class HttpTest extends BaseResponseSuite
         yield 'responds with 500' => ['/status/500', 500];
     }
 
-    /**
-     * Check that the url exists using http
-     *
-     * @dataProvider dataProvider
-     *
-     * @param $url
-     * @param $expected
-     */
+    #[DataProvider('dataProvider')]
     public function testCheckWithHttp(string $path, int $expected): void
     {
         self::$server->setResponseOfPath($path, new TestResponse($path, [], $expected));

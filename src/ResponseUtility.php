@@ -2,15 +2,24 @@
 
 namespace Myerscode\Utilities\Web;
 
+use Exception;
 use Curl\Curl;
 use League\Uri\Http;
 use Myerscode\Utilities\Web\Data\ResponseFrom;
 use Myerscode\Utilities\Web\Exceptions\CurlInitException;
 use Myerscode\Utilities\Web\Exceptions\EmptyUrlException;
+use Myerscode\Utilities\Web\Exceptions\FiveHundredResponseException;
+use Myerscode\Utilities\Web\Exceptions\FourHundredResponseException;
 use Myerscode\Utilities\Web\Exceptions\InvalidUrlException;
+use Myerscode\Utilities\Web\Exceptions\MaxRedirectsReachedException;
+use Myerscode\Utilities\Web\Exceptions\NetworkErrorException;
 use Myerscode\Utilities\Web\Exceptions\UnsupportedCheckMethodException;
 use Myerscode\Utilities\Web\Resource\Response;
 use Psr\Http\Message\UriInterface as Psr7UriInterface;
+use Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface;
+use Symfony\Contracts\HttpClient\Exception\RedirectionExceptionInterface;
+use Symfony\Contracts\HttpClient\Exception\ServerExceptionInterface;
+use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
 
 class ResponseUtility
 {
@@ -20,8 +29,6 @@ class ResponseUtility
     public const DEFAULT_SCHEME = 'https://';
 
     private ?Http $http = null;
-
-    private int $ttl = 255;
 
     /**
      * How long to wait before timing out requests
@@ -45,11 +52,10 @@ class ResponseUtility
      *
      * @param  string|Http|Psr7UriInterface  $uri
      *
-     * @return void
      * @throws EmptyUrlException
      * @throws InvalidUrlException
      */
-    private function setUrl(string|Http|Psr7UriInterface $uri): void
+    private function setUrl(string|UriUtility $uri): void
     {
         $trimmed = trim((string)$uri);
 
@@ -187,16 +193,34 @@ class ResponseUtility
      *
      * @throws EmptyUrlException
      * @throws InvalidUrlException
+     * @throws TransportExceptionInterface
      */
     public function fromHttpClient(): Response
     {
         $this->checkUrl();
 
-        $client = ClientUtility::client($this->uri());
+        $client = ClientUtility::client();
 
-        $response = $client->send();
-
-        return new Response($response->getStatusCode(), $response->getBody());
+        try {
+            $response = $client->request('GET', $this->value());
+            $statusCode = $response->getStatusCode();
+        } catch (ClientExceptionInterface $e) {
+            $statusCode = 400;
+        } catch (ServerExceptionInterface $e) {
+            $statusCode = 500;
+        } catch (Exception) {
+            throw new InvalidUrlException();
+        }
+        return new Response($statusCode);
+//        try {
+//
+//
+//
+//
+//            return new Response($response->getStatusCode(), $response->getContent());
+//        } catch (Exception) {
+//            throw new InvalidUrlException();
+//        }
     }
 
     /**
@@ -207,7 +231,7 @@ class ResponseUtility
      */
     protected function checkUrl(): void
     {
-        if (empty($this->value())) {
+        if (in_array($this->value(), ['', '0'], true)) {
             throw new EmptyUrlException();
         }
 

@@ -6,11 +6,7 @@ use Myerscode\Utilities\Web\UriUtility;
 
 abstract class BaseUriSuite extends BaseSuite
 {
-    /**
-     * @param $url
-     * @return UriUtility
-     */
-    public function utility($url)
+    public function utility(string $url): UriUtility
     {
         return new UriUtility($url);
     }

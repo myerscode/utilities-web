@@ -2,34 +2,29 @@
 
 namespace Tests\UriUtility;
 
-use Iterator;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\BaseUriSuite;
 
 class HostTest extends BaseUriSuite
 {
-    public static function dataProvider(): Iterator
+    public static function dataProvider(): array
     {
-        yield ['www.foo.bar', 'http://www.foo.bar'];
-        yield ['www.foo.bar', 'www.foo.bar'];
-        yield ['www.foo.bar', 'https://www.foo.bar'];
-        yield ['foo.bar', 'http://foo.bar'];
-        yield ['foo.bar', 'https://foo.bar'];
-        yield ['www.foo.bar', 'www.foo.bar'];
-        yield ['8.8.8.8', '8.8.8.8'];
-        yield ['localhost', 'localhost'];
-        yield ['www.foo.bar', 'www.foo.bar?hello=world'];
+        return [
+            ['www.foo.bar', 'http://www.foo.bar'],
+            ['www.foo.bar', 'www.foo.bar'],
+            ['www.foo.bar', 'https://www.foo.bar'],
+            ['foo.bar', 'http://foo.bar'],
+            ['foo.bar', 'https://foo.bar'],
+            ['www.foo.bar', 'www.foo.bar'],
+            ['8.8.8.8', '8.8.8.8'],
+            ['localhost', 'localhost'],
+            ['www.foo.bar', 'www.foo.bar?hello=world'],
+        ];
     }
 
-    /**
-     * Check if the url is using https
-     *
-     * @param number $expected The value expected to be returned
-     * @param number $string The value to pass to the utility
-     * @dataProvider dataProvider
-     */
+    #[DataProvider('dataProvider')]
     public function testExpectedHost(string $expected, string $string): void
     {
-        $this->assertSame($expected, $this->utility($string)->host());
+        $this->assertEquals($expected, $this->utility($string)->host());
     }
-
 }

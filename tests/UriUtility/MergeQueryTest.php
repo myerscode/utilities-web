@@ -2,8 +2,8 @@
 
 namespace Tests\UriUtility;
 
+use PHPUnit\Framework\Attributes\DataProvider;
 use Iterator;
-use Exception;
 use Tests\BaseUriSuite;
 
 class MergeQueryTest extends BaseUriSuite
@@ -19,16 +19,7 @@ class MergeQueryTest extends BaseUriSuite
         yield 'override another query by array' => ['https://myerscode.com?hello=world', ['hello' => 'bar'], 'https://myerscode.com?hello=bar'];
     }
 
-    /**
-     * Check that the url exists using curl
-     *
-     * @dataProvider dataProvider
-     *
-     * @param $url
-     * @param $expected
-     *
-     * @throws Exception
-     */
+    #[DataProvider('dataProvider')]
     public function testAddQueryParams(string $url, string|array $add, string $expected): void
     {
         $uriUtility = $this->utility($url)->mergeQuery($add);

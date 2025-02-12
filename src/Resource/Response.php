@@ -2,9 +2,9 @@
 
 namespace Myerscode\Utilities\Web\Resource;
 
-class Response
+readonly class Response
 {
-    public function __construct(private readonly int $code, private readonly string $content = '')
+    public function __construct(private int $code, private string $content = '', private array $headers = [])
     {
     }
 
@@ -16,6 +16,11 @@ class Response
     public function content(): string
     {
         return $this->content;
+    }
+
+    public function headers(): array
+    {
+        return $this->headers;
     }
 
     public function dom(): Dom

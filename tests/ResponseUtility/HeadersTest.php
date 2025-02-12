@@ -2,6 +2,7 @@
 
 namespace Tests\ResponseUtility;
 
+use PHPUnit\Framework\Attributes\DataProvider;
 use Iterator;
 use Tests\BaseResponseSuite;
 use Tests\TestResponse;
@@ -17,12 +18,7 @@ class HeadersTest extends BaseResponseSuite
         yield 'responds with 500' => ['/status/500', 500];
     }
 
-    /**
-     * @dataProvider dataProvider
-     *
-     * @param $url
-     * @param $expected
-     */
+    #[DataProvider('dataProvider')]
     public function testCheckWithHeaders(string $path, int $expected): void
     {
         self::$server->setResponseOfPath($path, new TestResponse($path, [], $expected));

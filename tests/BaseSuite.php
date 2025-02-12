@@ -9,10 +9,20 @@ class BaseSuite extends TestCase
 {
     protected static MockWebServer $server;
 
+    public function server(): MockWebServer
+    {
+        if (is_null(self::$server) || !isset(self::$server)) {
+            self::$server = new MockWebServer();
+        }
+
+        return static::$server;
+    }
+
     public static function serverUrl(string $path = ''): string
     {
         return self::$server->getServerRoot() . $path;
     }
+
     public static function serverIP(string $path = ''): string
     {
         return self::$server->getServerRoot() . $path;

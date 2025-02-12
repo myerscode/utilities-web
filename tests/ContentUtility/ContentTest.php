@@ -2,12 +2,13 @@
 
 namespace Tests\ContentUtility;
 
-use Exception;
+use Mockery;
 use Myerscode\Utilities\Web\ContentUtility;
 use Myerscode\Utilities\Web\Exceptions\ContentNotFoundException;
-use Myerscode\Utilities\Web\Exceptions\UnreachableContentException;
+use Myerscode\Utilities\Web\Exceptions\FiveHundredResponseException;
+use Myerscode\Utilities\Web\Resource\Response;
+use Symfony\Component\HttpClient\Response\MockResponse;
 use Tests\BaseContentSuite;
-use Tests\TestResponse;
 
 class ContentTest extends BaseContentSuite
 {
@@ -18,37 +19,34 @@ class ContentTest extends BaseContentSuite
     {
         $this->expectException(ContentNotFoundException::class);
 
-        self::$server->setResponseOfPath('', new TestResponse('', [], 404));
+        $stub = Mockery::mock(ContentUtility::class, ['https://localhost'])->makePartial();
 
-        $this->utility(self::serverUrl())->content();
+        $stub->shouldReceive('response')->once()->andReturn(new Response(404));
+
+        $stub->content();
     }
 
-    /**
-     * Check that content turns html from a valid url
-     */
     public function testExpectedContent(): void
     {
-        self::$server->setResponseOfPath('', new TestResponse('<html><h1>Hello World</h1></html>', [], 200));
+        $content = '<html lang="en"><h1>Hello World</h1></html>';
 
-        $this->assertSame('<html><h1>Hello World</h1></html>', $this->utility(self::serverUrl())->content());
+        $stub = Mockery::mock(ContentUtility::class, ['https://localhost'])->makePartial();
+        $stub->shouldReceive('response')->once()->andReturn(new Response(200, $content));
+
+        $this->assertEquals($content, $stub->content());
     }
 
     /**
-     * Check that content turns html from a valid url
+     * @throws ContentNotFoundException
      */
     public function testUnreachableContentExceptionThrown(): void
     {
-        $this->expectException(UnreachableContentException::class);
+        $this->expectException(FiveHundredResponseException::class);
 
-        $mock = $this->getMockBuilder(ContentUtility::class)
-            ->setConstructorArgs(['http://localhost'])
-            ->onlyMethods(['response'])
-            ->getMock();
+        $stub = Mockery::mock(ContentUtility::class, ['https://localhost'])->makePartial();
+        $stub->shouldAllowMockingProtectedMethods();
+        $stub->shouldReceive('clientResponse')->once()->andReturn(new MockResponse('Not Found', ['http_code' => 500]));
 
-        $mock->expects($this->once())
-            ->method('response')
-            ->willThrowException(new Exception());
-
-        $mock->content();
+        $stub->content();
     }
 }
