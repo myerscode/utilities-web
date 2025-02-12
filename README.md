@@ -4,7 +4,8 @@
 [![Latest Stable Version](https://poser.pugx.org/myerscode/utilities-web/v/stable)](https://packagist.org/packages/myerscode/utilities-web)
 [![Total Downloads](https://poser.pugx.org/myerscode/utilities-web/downloads)](https://packagist.org/packages/myerscode/utilities-web)
 [![License](https://poser.pugx.org/myerscode/utilities-web/license)](https://packagist.org/packages/myerscode/utilities-web)
-![Tests](https://github.com/myerscode/utilities-web/workflows/Tests/badge.svg?branch=master)
+![Tests](https://github.com/myerscode/utilities-web/actions/workflows/tests.yml/badge.svg?branch=main)
+[![codecov](https://codecov.io/gh/myerscode/utilities-web/graph/badge.svg?token=YR0YHVERNV)](https://codecov.io/gh/myerscode/utilities-strings)
 
 
 ## Install
