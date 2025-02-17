@@ -53,17 +53,14 @@ class PingUtility
         $host = escapeshellcmd($this->uri->host());
 
 
-        if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
-            // Exec string for Windows-based systems.
-            // -n = number of pings; -i = ttl; -w = timeout (in milliseconds).
+        if (str_starts_with(strtoupper(PHP_OS), 'WIN')) {
+            // Windows-based systems (ms timeout).
             $exec_string = 'ping -n 1 -i ' . $ttl . ' -w ' . ($timeout * 1000) . ' ' . $host;
         } elseif (strtoupper(PHP_OS) === 'DARWIN') {
-            // Exec string for Darwin based systems (OS X).
-            // -n = numeric output; -c = number of pings; -m = ttl; -t = timeout.
-            $exec_string = 'ping -n -c 1 -m ' . $ttl . ' -t ' . $timeout . ' ' . $host;
+            // macOS (seconds timeout).
+            $exec_string = 'ping -n -c 1 -t ' . $ttl . ' ' . $host;
         } else {
-            // Exec string for other UNIX-based systems (Linux).
-            // -n = numeric output; -c = number of pings; -t = ttl; -W = timeout
+            // Linux (seconds timeout).
             $exec_string = 'ping -n -c 1 -t ' . $ttl . ' -W ' . $timeout . ' ' . $host;
         }
 
