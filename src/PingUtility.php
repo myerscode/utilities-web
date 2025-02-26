@@ -46,40 +46,39 @@ class PingUtility
             'latency' => null,
         ];
 
-        $ttl = escapeshellcmd($this->ttl);
+        $ttl = (int) $this->ttl;
+        $timeout = (int) $this->timeout;
+        $host = escapeshellarg($this->uri->host());
 
-        $timeout = escapeshellcmd($this->timeout);
+        $isIPv6 = filter_var($this->uri->host(), FILTER_VALIDATE_IP, FILTER_FLAG_IPV6);
 
-        $host = escapeshellcmd($this->uri->host());
-
-
-        if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
-            // Exec string for Windows-based systems.
-            // -n = number of pings; -i = ttl; -w = timeout (in milliseconds).
-            $exec_string = 'ping -n 1 -i ' . $ttl . ' -w ' . ($timeout * 1000) . ' ' . $host;
+        if (str_starts_with(strtoupper(PHP_OS), 'WIN')) {
+            $exec_string = sprintf('ping -n 1 -i %d -w %d %s', $ttl, $timeout * 1000, $host);
         } elseif (strtoupper(PHP_OS) === 'DARWIN') {
-            // Exec string for Darwin based systems (OS X).
-            // -n = numeric output; -c = number of pings; -m = ttl; -t = timeout.
-            $exec_string = 'ping -n -c 1 -m ' . $ttl . ' -t ' . $timeout . ' ' . $host;
+            $exec_string = sprintf('ping -c 1 -t %d %s', $ttl, $host);
         } else {
-            // Exec string for other UNIX-based systems (Linux).
-            // -n = numeric output; -c = number of pings; -t = ttl; -W = timeout
-            $exec_string = 'ping -n -c 1 -t ' . $ttl . ' -W ' . $timeout . ' ' . $host;
+            if ($isIPv6) {
+                $exec_string = sprintf('ping6 -c 1 -t %d -w %d %s', $ttl, $timeout, $host);
+            } else {
+                $exec_string = sprintf('ping -c 1 -t %d -w %d %s', $ttl, $timeout, $host);
+            }
         }
 
         $output = [];
+        $returnCode = null;
 
-        $return = [];
+        exec($exec_string . ' 2>&1', $output, $returnCode);
 
-        exec($exec_string . ' 2>&1', $output, $return);
+        if (empty($output)) {
+            return $ping;
+        }
 
-        $output = array_values(array_filter($output));
-
-        if (isset($output[1]) && ($output[1] !== '' && $output[1] !== '0')) {
-            $response = preg_match("/time(?:=|<)(?<time>[\.0-9]+)(?:|\s)ms/", $output[1], $matches);
-            if ($response > 0 && isset($matches['time'])) {
+        // Scan all lines to find the latency
+        foreach ($output as $line) {
+            if (preg_match("/time(?:=|<)(?<time>[0-9]+(?:\.[0-9]+)?)\s?ms/", $line, $matches)) {
                 $ping['alive'] = true;
-                $ping['latency'] = round($matches['time']);
+                $ping['latency'] = round((float) $matches['time']);
+                break;
             }
         }
 
