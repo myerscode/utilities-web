@@ -18,14 +18,25 @@ jobs:
 
     name: PHP ${{ matrix.php-versions }} - ${{ matrix.os }}
     steps:
+
       - name: Checkout
         uses: actions/checkout@v2
+
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php-versions }}
           coverage: xdebug
+
       - name: Install dependencies
         run: composer install --prefer-dist --no-progress --no-interaction
+
+      - name: Enable ping on Ubuntu
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y iputils-ping
+          sudo chmod u+s /bin/ping
+
       - name: Run test suite
         run: vendor/bin/phpunit --testdox --coverage-html coverage
