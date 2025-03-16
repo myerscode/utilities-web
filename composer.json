@@ -25,6 +25,7 @@
   "require": {
     "php": "^8.4",
     "ext-curl": "*",
+    "ext-sockets": "*",
     "php-curl-class/php-curl-class": "^9.14",
     "symfony/http-client": "^7.2",
     "symfony/dom-crawler": "^7.2",
