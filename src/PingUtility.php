@@ -102,9 +102,12 @@ class PingUtility
             $pingCmd = $isIPv6 ? 'ping6' : 'ping';
         }
 
-        // Check if ping command exists
-        if (!shell_exec(sprintf('command -v %s 2>/dev/null', escapeshellarg($pingCmd)))) {
-            throw new RuntimeException("Ping command ($pingCmd) not found on this system.");
+        $checkCmd = (str_starts_with(strtoupper(PHP_OS), 'WIN')) ? 'where ' : 'which ';
+
+        exec($checkCmd . $pingCmd . ' 2>&1', $output, $returnCode);
+
+        if ($returnCode !== 0 || empty($output)) {
+            throw new RuntimeException('Ping command not found on this system (' . PHP_OS . ').');
         }
 
         return $pingCmd;
