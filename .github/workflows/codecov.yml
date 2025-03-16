@@ -25,13 +25,19 @@ jobs:
         with:
           php-version: ${{ matrix.php-versions }}
           coverage: xdebug
-          extensions: intl, fileinfo
 
       - name: Install dependencies
         run: composer install --prefer-dist --no-progress --no-interaction
 
-      - name: Run Test Suite
-        run: vendor/bin/phpunit --testdox --coverage-clover ./coverage.xml
+      - name: Enable ping on Ubuntu
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y iputils-ping
+          sudo chmod u+s /bin/ping
+
+      - name: Run test suite
+        run: vendor/bin/phpunit --testdox --coverage-html coverage
 
       - name: Code Coverage
         uses: codecov/codecov-action@v4
