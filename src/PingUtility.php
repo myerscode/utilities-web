@@ -72,11 +72,10 @@ class PingUtility
             return $ping;
         }
 
-        // Scan all lines to find the latency
         foreach ($output as $line) {
-            if (preg_match("/time(?:=|<)(?<time>[0-9]+(?:\.[0-9]+)?)\s?ms/", $line, $matches)) {
+            if (preg_match("/time[=<]?\s?(?<time>[0-9]+(?:\.[0-9]+)?)\s?ms/", $line, $latencyMatches)) {
                 $ping['alive'] = true;
-                $ping['latency'] = round((float) $matches['time']);
+                $ping['latency'] = round((float) $latencyMatches['time']);
                 break;
             }
         }
