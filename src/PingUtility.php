@@ -48,8 +48,8 @@ class PingUtility
             'latency' => null,
         ];
 
-        $ttl = (int) $this->ttl;
-        $timeout = (int) $this->timeout;
+        $ttl = $this->ttl;
+        $timeout = $this->timeout;
         $host = escapeshellarg($this->uri->host());
 
         $pingCmd = $this->getPingCommand($host);
@@ -64,9 +64,8 @@ class PingUtility
         }
 
         $output = [];
-        $returnCode = null;
 
-        exec($exec_string . ' 2>&1', $output, $returnCode);
+        exec($exec_string . ' 2>&1', $output);
 
         if (empty($output)) {
             return $ping;
@@ -75,7 +74,7 @@ class PingUtility
         foreach ($output as $line) {
             if (preg_match("/time[=<]?\s?(?<time>[0-9]+(?:\.[0-9]+)?)\s?ms/", $line, $latencyMatches)) {
                 $ping['alive'] = true;
-                $ping['latency'] = round((float) $latencyMatches['time']);
+                $ping['latency'] = round((float)$latencyMatches['time']);
                 break;
             }
         }

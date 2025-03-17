@@ -7,6 +7,14 @@ use Tests\BasePingSuite;
 
 class SystemPingTest extends BasePingSuite
 {
+    protected function setUp(): void
+    {
+        // Ping is not supported on Windows GitHub Actions
+        if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
+            $this->markTestSkipped('Skipping test on Windows');
+        }
+    }
+
     public static function dataProvider(): array
     {
         return [
