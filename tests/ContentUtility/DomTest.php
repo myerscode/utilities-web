@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\ContentUtility;
 
 use Myerscode\Utilities\Web\Exceptions\FourHundredResponseException;
@@ -8,7 +10,7 @@ use Myerscode\Utilities\Web\Resource\Dom;
 use Tests\BaseContentSuite;
 use Tests\TestResponse;
 
-class DomTest extends BaseContentSuite
+final class DomTest extends BaseContentSuite
 {
     public function testContentNotFoundExceptionThrown(): void
     {

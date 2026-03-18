@@ -11,7 +11,6 @@ use Myerscode\Utilities\Web\Exceptions\EmptyUrlException;
 use Myerscode\Utilities\Web\Exceptions\InvalidUrlException;
 use Myerscode\Utilities\Web\Exceptions\UnsupportedCheckMethodException;
 use Myerscode\Utilities\Web\Resource\Response;
-use Psr\Http\Message\UriInterface as Psr7UriInterface;
 use Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\ServerExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
@@ -23,6 +22,13 @@ class ResponseUtility
      */
     public const DEFAULT_SCHEME = 'https://';
 
+    protected int $maxRedirects = 10;
+
+    /**
+     * Should follow redirects
+     */
+    private bool $followRedirects = false;
+
     private ?Http $http = null;
 
     /**
@@ -30,70 +36,9 @@ class ResponseUtility
      */
     private int $timeout = 10;
 
-    /**
-     * Should follow redirects
-     */
-    private bool $followRedirects = false;
-
-    protected int $maxRedirects = 10;
-
     public function __construct(string|UriUtility $uri)
     {
         $this->setUrl($uri);
-    }
-
-    /**
-     * Set the current URL
-     *
-     * @param  string|Http|Psr7UriInterface  $uri
-     *
-     * @throws EmptyUrlException
-     * @throws InvalidUrlException
-     */
-    private function setUrl(string|UriUtility $uri): void
-    {
-        $trimmed = trim((string)$uri);
-
-        // check if a scheme is present, if not we need to give it one
-        preg_match_all('#(https:\/\/)|(http:\/\/)#', $trimmed, $matches, PREG_SET_ORDER, 0);
-
-        if ($matches === []) {
-            $trimmed = self::DEFAULT_SCHEME . $trimmed;
-        }
-
-        $this->http = Http::new($trimmed);
-
-        $this->checkUrl();
-    }
-
-    /**
-     * Get the current URL
-     */
-    public function value(): string
-    {
-        return urldecode((string)$this->http);
-    }
-
-    /**
-     * Set the timeout.
-     *
-     * @param  int  $timeout  Time to wait in seconds.
-     */
-    public function setTimeout(int $timeout): ResponseUtility
-    {
-        $this->timeout = $timeout;
-
-        return $this;
-    }
-
-    /**
-     * Set whether or the utility should follow redirects
-     */
-    public function setFollowRedirects(bool $followRedirects): ResponseUtility
-    {
-        $this->followRedirects = $followRedirects;
-
-        return $this;
     }
 
     /**
@@ -112,6 +57,14 @@ class ResponseUtility
             ResponseFrom::HTTP => $this->fromHttpClient(),
             default => throw new UnsupportedCheckMethodException(),
         };
+    }
+
+    /**
+     * Should follow redirects
+     */
+    public function followRedirects(): bool
+    {
+        return $this->followRedirects;
     }
 
     /**
@@ -167,7 +120,7 @@ class ResponseUtility
 
         $code = 404;
 
-        if ($headers && is_array($headers)) {
+        if ($headers) {
             if ($this->followRedirects()) {
                 $headers = array_reverse($headers);
             }
@@ -199,48 +152,46 @@ class ResponseUtility
         try {
             $response = $client->request('GET', $this->value());
             $statusCode = $response->getStatusCode();
-        } catch (ClientExceptionInterface $e) {
+        } catch (ClientExceptionInterface) {
             $statusCode = 400;
-        } catch (ServerExceptionInterface $e) {
+        } catch (ServerExceptionInterface) {
             $statusCode = 500;
         } catch (Exception) {
             throw new InvalidUrlException();
         }
+
         return new Response($statusCode);
-//        try {
-//
-//
-//
-//
-//            return new Response($response->getStatusCode(), $response->getContent());
-//        } catch (Exception) {
-//            throw new InvalidUrlException();
-//        }
+        //        try {
+        //
+        //
+        //
+        //
+        //            return new Response($response->getStatusCode(), $response->getContent());
+        //        } catch (Exception) {
+        //            throw new InvalidUrlException();
+        //        }
     }
 
     /**
-     * Check the URL that will be used
+     * Set whether or the utility should follow redirects
+     */
+    public function setFollowRedirects(bool $followRedirects): ResponseUtility
+    {
+        $this->followRedirects = $followRedirects;
+
+        return $this;
+    }
+
+    /**
+     * Set the timeout.
      *
-     * @throws EmptyUrlException
-     * @throws InvalidUrlException
+     * @param  int  $timeout  Time to wait in seconds.
      */
-    protected function checkUrl(): void
+    public function setTimeout(int $timeout): ResponseUtility
     {
-        if (in_array($this->value(), ['', '0'], true)) {
-            throw new EmptyUrlException();
-        }
+        $this->timeout = $timeout;
 
-        if (filter_var($this->value(), FILTER_VALIDATE_URL) === false) {
-            throw new InvalidUrlException();
-        }
-    }
-
-    /**
-     * Should follow redirects
-     */
-    public function followRedirects(): bool
-    {
-        return $this->followRedirects;
+        return $this;
     }
 
     /**
@@ -262,5 +213,52 @@ class ResponseUtility
     public function uri(): string
     {
         return $this->value();
+    }
+
+    /**
+     * Get the current URL
+     */
+    public function value(): string
+    {
+        return urldecode((string)$this->http);
+    }
+
+    /**
+     * Check the URL that will be used
+     *
+     * @throws EmptyUrlException
+     * @throws InvalidUrlException
+     */
+    protected function checkUrl(): void
+    {
+        if (in_array($this->value(), ['', '0'], true)) {
+            throw new EmptyUrlException();
+        }
+
+        if (filter_var($this->value(), FILTER_VALIDATE_URL) === false) {
+            throw new InvalidUrlException();
+        }
+    }
+
+    /**
+     * Set the current URL
+     *
+     * @throws EmptyUrlException
+     * @throws InvalidUrlException
+     */
+    private function setUrl(string|UriUtility $uri): void
+    {
+        $trimmed = trim($uri instanceof UriUtility ? $uri->value() : $uri);
+
+        // check if a scheme is present, if not we need to give it one
+        preg_match_all('#(https:\/\/)|(http:\/\/)#', $trimmed, $matches, PREG_SET_ORDER, 0);
+
+        if ($matches === []) {
+            $trimmed = self::DEFAULT_SCHEME . $trimmed;
+        }
+
+        $this->http = Http::new($trimmed);
+
+        $this->checkUrl();
     }
 }

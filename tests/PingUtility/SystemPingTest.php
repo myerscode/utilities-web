@@ -1,11 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\PingUtility;
 
 use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\BasePingSuite;
+use Iterator;
 
-class SystemPingTest extends BasePingSuite
+final class SystemPingTest extends BasePingSuite
 {
     protected function setUp(): void
     {
@@ -15,13 +18,11 @@ class SystemPingTest extends BasePingSuite
         }
     }
 
-    public static function dataProvider(): array
+    public static function dataProvider(): Iterator
     {
-        return [
-            'ip' => [true, '8.8.8.8'],
-            'valid url' => [true, 'https://myerscode.com'],
-            'invalid url' => [false, 'https://not.a.real.domain'],
-        ];
+        yield 'ip' => [true, '8.8.8.8'];
+        yield 'valid url' => [true, 'https://myerscode.com'];
+        yield 'invalid url' => [false, 'https://not.a.real.domain'];
     }
 
     #[DataProvider('dataProvider')]

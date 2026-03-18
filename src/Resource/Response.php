@@ -18,13 +18,13 @@ readonly class Response
         return $this->content;
     }
 
-    public function headers(): array
-    {
-        return $this->headers;
-    }
-
     public function dom(): Dom
     {
         return new Dom($this->content());
+    }
+
+    public function headers(): array
+    {
+        return $this->headers;
     }
 }

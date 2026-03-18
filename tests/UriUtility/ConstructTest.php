@@ -1,33 +1,33 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\UriUtility;
 
-use PHPUnit\Framework\Attributes\CoversFunction;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\BaseUriSuite;
+use Iterator;
 
-class ConstructTest extends BaseUriSuite
+final class ConstructTest extends BaseUriSuite
 {
-    public static function dataProvider(): array
+    public static function dataProvider(): Iterator
     {
-        return [
-            ['http://www.foo.bar', 'http://www.foo.bar'],
-            ['https://www.foo.bar', 'www.foo.bar'],
-            ['https://www.foo.bar', 'https://www.foo.bar'],
-            ['http://foo.bar', 'http://foo.bar'],
-            ['https://foo.bar', 'https://foo.bar'],
-            ['https://www.foo.bar', 'www.foo.bar'],
-            ['https://foo.bar', 'foo.bar'],
-            ['https://localhost', 'localhost'],
-            ['https://www.foo.bar?hello=world', 'www.foo.bar?hello=world'],
-            ['https://www.foo.bar?hello[]=world&hello[]=world', 'www.foo.bar?hello[]=world&hello[]=world'],
-        ];
+        yield ['http://www.foo.bar', 'http://www.foo.bar'];
+        yield ['https://www.foo.bar', 'www.foo.bar'];
+        yield ['https://www.foo.bar', 'https://www.foo.bar'];
+        yield ['http://foo.bar', 'http://foo.bar'];
+        yield ['https://foo.bar', 'https://foo.bar'];
+        yield ['https://www.foo.bar', 'www.foo.bar'];
+        yield ['https://foo.bar', 'foo.bar'];
+        yield ['https://localhost', 'localhost'];
+        yield ['https://www.foo.bar?hello=world', 'www.foo.bar?hello=world'];
+        yield ['https://www.foo.bar?hello[]=world&hello[]=world', 'www.foo.bar?hello[]=world&hello[]=world'];
     }
 
     #[DataProvider('dataProvider')]
     public function testConstructor(string $expected, string $string): void
     {
-        $this->assertEquals($expected, $this->utility($string)->value());
+        $this->assertSame($expected, $this->utility($string)->value());
     }
 
 }

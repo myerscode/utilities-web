@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\ResponseUtility;
 
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -7,7 +9,7 @@ use Iterator;
 use Tests\BaseResponseSuite;
 use Tests\TestResponse;
 
-class HeadersTest extends BaseResponseSuite
+final class HeadersTest extends BaseResponseSuite
 {
     public static function dataProvider(): Iterator
     {

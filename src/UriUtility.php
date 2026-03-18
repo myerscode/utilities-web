@@ -15,7 +15,7 @@ class UriUtility
 {
     public const DEFAULT_SCHEME = 'http://';
 
-    private Http $uri;
+    private Http $http;
 
     /**
      * How long to wait before timing out requests
@@ -32,20 +32,177 @@ class UriUtility
     }
 
     /**
-     * Set the current URL
+     * Add or override query parameters to the uri
+     *
+     * @throws Exception
      */
-    private function setUrl(string|Http $uri): void
+    public function addQueryParameter(string|array $params): self
     {
-        $trimmed = trim($uri);
-
-        // check if a scheme is present, if not we need to give it one
-        preg_match_all('/(https:\/\/)|(http:\/\/)/', $trimmed, $matches, PREG_SET_ORDER, 0);
-
-        if ($matches === []) {
-            $trimmed = 'https://' . $trimmed;
+        if (is_array($params)) {
+            $queryParams = Query::fromVariable($params);
+        } else {
+            $queryParams = Query::new($params);
         }
 
-        $this->uri = Http::new($trimmed);
+        $query = Query::new($this->http->getQuery());
+
+        $newQuery = $query->append($queryParams);
+
+        return $this->setQuery(ltrim($newQuery, '&'));
+    }
+
+    /**
+     * Check the response from the uri
+     *
+     * @throws EmptyUrlException
+     * @throws InvalidUrlException
+     * @throws UnsupportedCheckMethodException
+     * @throws CurlInitException
+     */
+    public function check(int $method = Utility::METHOD_CURL): Response
+    {
+        $responseUtility = new ResponseUtility($this->value());
+
+        return $responseUtility->check(match ($method) {
+            Utility::METHOD_CURL => Data\ResponseFrom::CURL,
+            Utility::METHOD_HEADERS => Data\ResponseFrom::HEADERS,
+            Utility::METHOD_HTTP => Data\ResponseFrom::HTTP,
+            default => throw new UnsupportedCheckMethodException(),
+        });
+    }
+
+    /**
+     * Get an array of query parameters from the URL
+     */
+    public function getQueryParameters(): array
+    {
+        $parameters = [];
+        $queryString = parse_url($this->query(), PHP_URL_QUERY);
+
+        if (is_string($queryString)) {
+            parse_str($queryString, $parameters);
+        }
+
+        return $parameters;
+    }
+
+    /**
+     * Get the urls query parameters as a string
+     *
+     * @param int $enc_type
+     */
+    public function getQueryString(string $numeric_prefix = '', string $arg_separator = '&', int $enc_type = PHP_QUERY_RFC1738): string
+    {
+        return http_build_query($this->getQueryParameters(), $numeric_prefix, $arg_separator, $enc_type);
+    }
+
+    /**
+     * Retrieve the host component of the URL.
+     */
+    public function host(): string
+    {
+        return $this->http->getHost();
+    }
+
+    /**
+     * Check if the URL is set to url HTTPS
+     */
+    public function isHttps(): bool
+    {
+        return 'https' === strtolower($this->scheme());
+    }
+
+
+    /**
+     * Add or override query parameters to the uri
+     */
+    public function mergeQuery(string|array $params): self
+    {
+        if (is_array($params)) {
+            $queryParams = Query::fromVariable($params);
+        } else {
+            $queryParams = Query::new($params);
+        }
+
+        $query = Query::new($this->http->getQuery());
+
+        $newQuery = $query->merge($queryParams);
+
+        return $this->setQuery(ltrim($newQuery, '&'));
+    }
+
+    /**
+     * Get the current URLS path
+     */
+    public function path(): string
+    {
+        return $this->http->getPath();
+    }
+
+    /**
+     * Get the port of the URI
+     */
+    public function port(): int
+    {
+        $port = $this->http->getPort();
+
+        if (is_null($port)) {
+            return $this->isHttps() ? 443 : 80;
+        }
+
+        return $port;
+    }
+
+    /**
+     * Get query string of parameters from the URL
+     */
+    public function query(): string
+    {
+        return $this->http->getQuery();
+    }
+
+    /**
+     * Get the URLS scheme
+     */
+    public function scheme(): string
+    {
+        return $this->http->getScheme();
+    }
+
+    /**
+     * Set the urls query parameters
+     */
+    public function setQuery(string|array $params): self
+    {
+        if (is_array($params)) {
+            $queryParams = Query::fromVariable($params);
+        } else {
+            $queryParams = Query::new($params);
+        }
+
+        $this->setUrl($this->http->withQuery(ltrim($queryParams, '&')));
+
+        return $this;
+    }
+
+    /**
+     * Get the timeout.
+     *
+     * @return int Current timeout for Ping.
+     */
+    public function timeout(): int
+    {
+        return $this->timeout;
+    }
+
+    /**
+     * Get the url the utility is using.
+     *
+     * @return string The url
+     */
+    public function uri(): string
+    {
+        return $this->value();
     }
 
     /**
@@ -63,71 +220,7 @@ class UriUtility
      */
     public function value(): string
     {
-        return urldecode((string)$this->uri);
-    }
-
-    /**
-     * Get the URLS scheme
-     */
-    public function scheme(): string
-    {
-        return $this->uri->getScheme();
-    }
-
-    /**
-     * Get query string of parameters from the URL
-     */
-    public function query(): string
-    {
-        return $this->uri->getQuery();
-    }
-
-    /**
-     * Retrieve the host component of the URL.
-     */
-    public function host(): string
-    {
-        return $this->uri->getHost();
-    }
-
-    /**
-     * Get the current URLS path
-     */
-    public function path(): string
-    {
-        return $this->uri->getPath();
-    }
-
-    /**
-     * Get the port of the URI
-     */
-    public function port(): int
-    {
-        $port = $this->uri->getPort();
-
-        if (is_null($port)) {
-            return $this->isHttps() ? 443 : 80;
-        }
-
-        return $port;
-    }
-
-    /**
-     * Check the response from the uri
-     *
-     * @throws EmptyUrlException
-     * @throws InvalidUrlException
-     * @throws UnsupportedCheckMethodException
-     * @throws CurlInitException
-     */
-    public function check(string $method = Utility::METHOD_CURL): Response
-    {
-        return match ((int)$method) {
-            Utility::METHOD_CURL => $this->checkWithCurl(),
-            Utility::METHOD_HEADERS => $this->checkWithHeaders(),
-            Utility::METHOD_HTTP => $this->checkWithHttpClient(),
-            default => throw new UnsupportedCheckMethodException(),
-        };
+        return urldecode((string)$this->http);
     }
 
     /**
@@ -148,111 +241,19 @@ class UriUtility
     }
 
     /**
-     * Get the timeout.
-     *
-     * @return int Current timeout for Ping.
+     * Set the current URL
      */
-    public function timeout(): int
+    private function setUrl(string|Http $uri): void
     {
-        return $this->timeout;
-    }
+        $trimmed = trim($uri);
 
-    /**
-     * Get the urls query parameters as a string
-     *
-     * @param int $enc_type
-     */
-    public function getQueryString($numeric_prefix = null, $arg_separator = null, $enc_type = PHP_QUERY_RFC1738): string
-    {
-        return http_build_query($this->getQueryParameters(), $numeric_prefix, $arg_separator, $enc_type);
-    }
+        // check if a scheme is present, if not we need to give it one
+        preg_match_all('/(https:\/\/)|(http:\/\/)/', $trimmed, $matches, PREG_SET_ORDER, 0);
 
-    /**
-     * Get an array of query parameters from the URL
-     */
-    public function getQueryParameters(): array
-    {
-        $parameters = [];
-
-        parse_str(parse_url($this->query(), PHP_URL_QUERY), $parameters);
-
-        return $parameters;
-    }
-
-    /**
-     * Check if the URL is set to url HTTPS
-     */
-    public function isHttps(): bool
-    {
-        return 'https' === strtolower($this->scheme());
-    }
-
-    /**
-     * Set the urls query parameters
-     */
-    public function setQuery(string|array $params): self
-    {
-        if (is_array($params)) {
-            $queryParams = Query::fromVariable($params);
-        } else {
-            $queryParams = Query::new($params);
+        if ($matches === []) {
+            $trimmed = 'https://' . $trimmed;
         }
 
-        $this->setUrl($this->uri->withQuery(ltrim($queryParams, '&')));
-
-        return $this;
-    }
-
-    /**
-     * Add or override query parameters to the uri
-     *
-     * @throws Exception
-     */
-    public function addQueryParameter(string|array $params): self
-    {
-        if (is_array($params)) {
-            $queryParams = Query::fromVariable($params);
-        } else {
-            $queryParams = Query::new($params);
-        }
-
-        $currentParams = Query::new($this->uri->getQuery());
-
-        $newQuery = $currentParams->append($queryParams);
-
-        return $this->setQuery(ltrim($newQuery, '&'));
-    }
-
-
-    /**
-     * Add or override query parameters to the uri
-     *
-     *
-     * @return $this
-     * @throws InvalidQueryParamsException|InvalidSchemeException
-     */
-    public function mergeQuery(string|array $params): static
-    {
-        if (is_array($params)) {
-            $queryParams = Query::fromVariable($params);
-        } else {
-            $queryParams = Query::new($params);
-        }
-
-        $currentParams = Query::new($this->uri->getQuery());
-
-        $newQuery = $currentParams->merge($queryParams);
-
-        return $this->setQuery(ltrim($newQuery, '&'));
-    }
-
-    /**
-     * Get the url the utility is using.
-     *
-     * @return string The url
-     */
-    public function uri(): string
-    {
-        return $this->value();
+        $this->http = Http::new($trimmed);
     }
 }

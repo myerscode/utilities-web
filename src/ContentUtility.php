@@ -2,7 +2,6 @@
 
 namespace Myerscode\Utilities\Web;
 
-use Exception;
 use Myerscode\Utilities\Web\Exceptions\FourHundredResponseException;
 use Myerscode\Utilities\Web\Exceptions\ContentNotFoundException;
 use Myerscode\Utilities\Web\Exceptions\MaxRedirectsReachedException;
@@ -20,59 +19,20 @@ use Symfony\Contracts\HttpClient\ResponseInterface;
 class ContentUtility
 {
     /**
-     * The url to get content from
-     */
-    private readonly UriUtility $utility;
-
-    /**
      * Collection of request options to be passed to guzzle
      */
     private array $requestOptions = [
         'timeout' => 60,
     ];
+    /**
+     * The url to get content from
+     */
+    private readonly UriUtility $uriUtility;
 
-    public function __construct(readonly string $url, array $requestOptions = [])
+    public function __construct(public readonly string $url, array $requestOptions = [])
     {
-        $this->utility = new UriUtility($url);
+        $this->uriUtility = new UriUtility($url);
         $this->setRequestOptions($requestOptions);
-    }
-
-    /**
-     * Create a client to send a http request
-     */
-    protected function client(): HttpClientInterface
-    {
-        return Utility::client();
-    }
-
-    protected function clientResponse(): ResponseInterface
-    {
-        return $this->client()->request(
-            'GET',
-            $this->utility->url()
-        );
-    }
-
-    /**
-     * @throws FourHundredResponseException
-     * @throws MaxRedirectsReachedException
-     * @throws NetworkErrorException
-     * @throws FiveHundredResponseException
-     */
-    public function response(): Response
-    {
-        try {
-            $response = $this->clientResponse();
-            return new Response($response->getStatusCode(), $response->getContent(), $response->getHeaders());
-        } catch (TransportExceptionInterface $e) {
-            throw new NetworkErrorException($e->getMessage(), $e->getCode(), $e);
-        } catch (ClientExceptionInterface $e) {
-            throw new FourHundredResponseException($e->getMessage(), $e->getCode(), $e);
-        } catch (RedirectionExceptionInterface $e) {
-            throw new MaxRedirectsReachedException();
-        } catch (ServerExceptionInterface $e) {
-            throw new FiveHundredResponseException();
-        }
     }
 
     /**
@@ -85,7 +45,7 @@ class ContentUtility
     {
         $response = $this->response();
 
-        if ($response->code() == 404) {
+        if ($response->code() === 404) {
             throw new ContentNotFoundException();
         }
 
@@ -104,13 +64,25 @@ class ContentUtility
     }
 
     /**
-     * Set options to use in a request against the url
-     *
-     * @param $requestOptions
+     * @throws FourHundredResponseException
+     * @throws MaxRedirectsReachedException
+     * @throws NetworkErrorException
+     * @throws FiveHundredResponseException
      */
-    private function setRequestOptions(array $requestOptions): void
+    public function response(): Response
     {
-        $this->requestOptions = array_merge($this->requestOptions, $requestOptions);
+        try {
+            $response = $this->clientResponse();
+            return new Response($response->getStatusCode(), $response->getContent(), $response->getHeaders());
+        } catch (TransportExceptionInterface $e) {
+            throw new NetworkErrorException($e->getMessage(), $e->getCode(), $e);
+        } catch (ClientExceptionInterface $e) {
+            throw new FourHundredResponseException($e->getMessage(), $e->getCode(), $e);
+        } catch (RedirectionExceptionInterface) {
+            throw new MaxRedirectsReachedException();
+        } catch (ServerExceptionInterface) {
+            throw new FiveHundredResponseException();
+        }
     }
 
     /**
@@ -118,6 +90,32 @@ class ContentUtility
      */
     public function url(): string
     {
-        return $this->utility->url();
+        return $this->uriUtility->url();
+    }
+
+    /**
+     * Create a client to send a http request
+     */
+    protected function client(): HttpClientInterface
+    {
+        return Utility::client();
+    }
+
+    protected function clientResponse(): ResponseInterface
+    {
+        return $this->client()->request(
+            'GET',
+            $this->uriUtility->url()
+        );
+    }
+
+    /**
+     * Set options to use in a request against the url
+     *
+     * @param $requestOptions
+     */
+    private function setRequestOptions(array $requestOptions): void
+    {
+        $this->requestOptions = array_merge($this->requestOptions, $requestOptions);
     }
 }

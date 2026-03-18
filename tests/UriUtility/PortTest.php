@@ -1,12 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\UriUtility;
 
 use PHPUnit\Framework\Attributes\DataProvider;
 use Iterator;
 use Tests\BaseUriSuite;
 
-class PortTest extends BaseUriSuite
+final class PortTest extends BaseUriSuite
 {
     public static function dataProvider(): Iterator
     {

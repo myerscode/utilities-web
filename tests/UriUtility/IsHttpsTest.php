@@ -1,33 +1,34 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\UriUtility;
 
 use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\BaseUriSuite;
+use Iterator;
 
-class IsHttpsTest extends BaseUriSuite
+final class IsHttpsTest extends BaseUriSuite
 {
-    public static function dataProvider(): array
+    public static function dataProvider(): Iterator
     {
-        return [
-            [false, 'http://www.foo.bar'],
-            [true, 'www.foo.bar'],
-            [true, 'https://www.foo.bar'],
-            [false, 'http://foo.bar'],
-            [true, 'https://foo.bar'],
-            [true, 'www.foo.bar'],
-            [true, 'foo.bar'],
-            [true, 'localhost'],
-            [true, 'www.foo.bar?hello=world'],
-            [true, 'www.foo.bar?hello[]=world&hello[]=world'],
-            [false, 'http://www.foo.bar?hello[]=world&hello[]=world'],
-        ];
+        yield [false, 'http://www.foo.bar'];
+        yield [true, 'www.foo.bar'];
+        yield [true, 'https://www.foo.bar'];
+        yield [false, 'http://foo.bar'];
+        yield [true, 'https://foo.bar'];
+        yield [true, 'www.foo.bar'];
+        yield [true, 'foo.bar'];
+        yield [true, 'localhost'];
+        yield [true, 'www.foo.bar?hello=world'];
+        yield [true, 'www.foo.bar?hello[]=world&hello[]=world'];
+        yield [false, 'http://www.foo.bar?hello[]=world&hello[]=world'];
     }
 
     #[DataProvider('dataProvider')]
     public function testExpectedIsHttps(bool $expected, string $string): void
     {
-        $this->assertEquals($expected, $this->utility($string)->isHttps());
+        $this->assertSame($expected, $this->utility($string)->isHttps());
     }
 
 }

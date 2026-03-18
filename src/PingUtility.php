@@ -7,35 +7,22 @@ use RuntimeException;
 class PingUtility
 {
     /**
-     * The url ping
-     *
-     * @var UriUtility $uri
-     */
-    private UriUtility $uri;
-
-    /**
-     * @var int
-     */
-    private int $ttl = 255;
-
-    /**
      * How long to wait in seconds before timing out requests
-     *
-     * @var int
      */
     private int $timeout = 1;
+
+    private int $ttl = 255;
+    /**
+     * The url ping
+     */
+    private readonly UriUtility $uriUtility;
 
     /**
      * Utility constructor.
      */
     public function __construct(string $url)
     {
-        $this->uri = new UriUtility($url);
-    }
-
-    public function url(): string
-    {
-        return $this->uri->value();
+        $this->uriUtility = new UriUtility($url);
     }
 
     /**
@@ -50,7 +37,7 @@ class PingUtility
 
         $ttl = $this->ttl;
         $timeout = $this->timeout;
-        $host = escapeshellarg($this->uri->host());
+        $host = escapeshellarg($this->uriUtility->host());
 
         $pingCmd = $this->getPingCommand($host);
 
@@ -67,12 +54,12 @@ class PingUtility
 
         exec($exec_string . ' 2>&1', $output);
 
-        if (empty($output)) {
+        if ($output === []) {
             return $ping;
         }
 
         foreach ($output as $line) {
-            if (preg_match("/time[=<]?\s?(?<time>[0-9]+(?:\.[0-9]+)?)\s?ms/", $line, $latencyMatches)) {
+            if (preg_match("/time[=<]?\\s?(?<time>\\d+(?:\\.\\d+)?)\\s?ms/", $line, $latencyMatches)) {
                 $ping['alive'] = true;
                 $ping['latency'] = round((float)$latencyMatches['time']);
                 break;
@@ -82,11 +69,14 @@ class PingUtility
         return $ping;
     }
 
+    public function url(): string
+    {
+        return $this->uriUtility->value();
+    }
+
     /**
      * Determines the correct ping command and checks if it's available.
      *
-     * @param string $host
-     * @return string
      * @throws RuntimeException if ping is not found
      */
     private function getPingCommand(string $host): string
@@ -105,7 +95,7 @@ class PingUtility
 
         exec($checkCmd . $pingCmd . ' 2>&1', $output, $returnCode);
 
-        if ($returnCode !== 0 || empty($output)) {
+        if ($returnCode !== 0 || $output === []) {
             throw new RuntimeException('Ping command not found on this system (' . PHP_OS . ').');
         }
 

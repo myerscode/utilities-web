@@ -6,6 +6,27 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## Unreleased
 
+### Changed
+- Upgrade minimum PHP version to ^8.5
+- Modernise codebase with Rector (strict types, typed properties, yield data providers, first-class callables)
+- Update php-curl-class to ^12.0, Symfony packages to ^8.0, PHPUnit to ^13.0
+- Fix broken `UriUtility::check()` method to delegate to `ResponseUtility`
+- Fix `getQueryParameters()` null safety for `parse_url` return
+- Add type hints to `getQueryString()` parameters
+- Fix `ResponseUtility::setUrl()` to properly handle `UriUtility` parameter
+
+### Added
+- PHPStan static analysis at level 8
+- Laravel Pint code style enforcement
+- Security audit CI workflow
+- Dependabot configuration for automated dependency updates
+- PHP version badge and Requirements section in README
+
+### Removed
+- `InvalidQueryParamsException` (never thrown)
+- `InvalidSchemeException` (never thrown)
+- `squizlabs/php_codesniffer` (replaced by Laravel Pint)
+
 ## [1.3.1](https://github.com/myerscode/utilities-web/releases/tag/1.3.1) - 2019-05-24
 
 - [`6fc57fa`](https://github.com/myerscode/utilities-web/commit/6fc57fad0e74ee7d1d3bd7b11525f2c4cbcddbda) feat: added method to added query params to url

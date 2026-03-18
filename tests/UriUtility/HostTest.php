@@ -1,30 +1,31 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\UriUtility;
 
 use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\BaseUriSuite;
+use Iterator;
 
-class HostTest extends BaseUriSuite
+final class HostTest extends BaseUriSuite
 {
-    public static function dataProvider(): array
+    public static function dataProvider(): Iterator
     {
-        return [
-            ['www.foo.bar', 'http://www.foo.bar'],
-            ['www.foo.bar', 'www.foo.bar'],
-            ['www.foo.bar', 'https://www.foo.bar'],
-            ['foo.bar', 'http://foo.bar'],
-            ['foo.bar', 'https://foo.bar'],
-            ['www.foo.bar', 'www.foo.bar'],
-            ['8.8.8.8', '8.8.8.8'],
-            ['localhost', 'localhost'],
-            ['www.foo.bar', 'www.foo.bar?hello=world'],
-        ];
+        yield ['www.foo.bar', 'http://www.foo.bar'];
+        yield ['www.foo.bar', 'www.foo.bar'];
+        yield ['www.foo.bar', 'https://www.foo.bar'];
+        yield ['foo.bar', 'http://foo.bar'];
+        yield ['foo.bar', 'https://foo.bar'];
+        yield ['www.foo.bar', 'www.foo.bar'];
+        yield ['8.8.8.8', '8.8.8.8'];
+        yield ['localhost', 'localhost'];
+        yield ['www.foo.bar', 'www.foo.bar?hello=world'];
     }
 
     #[DataProvider('dataProvider')]
     public function testExpectedHost(string $expected, string $string): void
     {
-        $this->assertEquals($expected, $this->utility($string)->host());
+        $this->assertSame($expected, $this->utility($string)->host());
     }
 }

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\ContentUtility;
 
 use Mockery;
@@ -10,7 +12,7 @@ use Myerscode\Utilities\Web\Resource\Response;
 use Symfony\Component\HttpClient\Response\MockResponse;
 use Tests\BaseContentSuite;
 
-class ContentTest extends BaseContentSuite
+final class ContentTest extends BaseContentSuite
 {
     /**
      * Check that content turns html from a valid url
@@ -19,21 +21,21 @@ class ContentTest extends BaseContentSuite
     {
         $this->expectException(ContentNotFoundException::class);
 
-        $stub = Mockery::mock(ContentUtility::class, ['https://localhost'])->makePartial();
+        $legacyMock = Mockery::mock(ContentUtility::class, ['https://localhost'])->makePartial();
 
-        $stub->shouldReceive('response')->once()->andReturn(new Response(404));
+        $legacyMock->shouldReceive('response')->once()->andReturn(new Response(404));
 
-        $stub->content();
+        $legacyMock->content();
     }
 
     public function testExpectedContent(): void
     {
         $content = '<html lang="en"><h1>Hello World</h1></html>';
 
-        $stub = Mockery::mock(ContentUtility::class, ['https://localhost'])->makePartial();
-        $stub->shouldReceive('response')->once()->andReturn(new Response(200, $content));
+        $legacyMock = Mockery::mock(ContentUtility::class, ['https://localhost'])->makePartial();
+        $legacyMock->shouldReceive('response')->once()->andReturn(new Response(200, $content));
 
-        $this->assertEquals($content, $stub->content());
+        $this->assertEquals($content, $legacyMock->content());
     }
 
     /**
@@ -43,10 +45,10 @@ class ContentTest extends BaseContentSuite
     {
         $this->expectException(FiveHundredResponseException::class);
 
-        $stub = Mockery::mock(ContentUtility::class, ['https://localhost'])->makePartial();
-        $stub->shouldAllowMockingProtectedMethods();
-        $stub->shouldReceive('clientResponse')->once()->andReturn(new MockResponse('Not Found', ['http_code' => 500]));
+        $legacyMock = Mockery::mock(ContentUtility::class, ['https://localhost'])->makePartial();
+        $legacyMock->shouldAllowMockingProtectedMethods();
+        $legacyMock->shouldReceive('clientResponse')->once()->andReturn(new MockResponse('Not Found', ['http_code' => 500]));
 
-        $stub->content();
+        $legacyMock->content();
     }
 }

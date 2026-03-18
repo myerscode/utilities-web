@@ -34,7 +34,15 @@ class Utility
     public static function client(): HttpClientInterface
     {
         return HttpClient::create();
-//        return $client->request($url, array_merge([], self::$requestOptions, $requestOptions));
+        //        return $client->request($url, array_merge([], self::$requestOptions, $requestOptions));
+    }
+
+    /**
+     * Get the content utility
+     */
+    public function content(): ContentUtility
+    {
+        return (new ContentUtility($this->url));
     }
 
     /**
@@ -51,13 +59,5 @@ class Utility
     public function url(): UriUtility
     {
         return (new UriUtility($this->url));
-    }
-
-    /**
-     * Get the content utility
-     */
-    public function content(): ContentUtility
-    {
-        return (new ContentUtility($this->url));
     }
 }
