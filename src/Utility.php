@@ -2,21 +2,10 @@
 
 namespace Myerscode\Utilities\Web;
 
-use Symfony\Component\HttpClient\HttpClient;
-use Symfony\Contracts\HttpClient\HttpClientInterface;
-
 class Utility
 {
     public function __construct(private readonly string $url)
     {
-    }
-
-    /**
-     * Get a http client for utilities to use
-     */
-    public static function client(): HttpClientInterface
-    {
-        return HttpClient::create();
     }
 
     /**

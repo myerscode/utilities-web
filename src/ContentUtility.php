@@ -91,7 +91,7 @@ class ContentUtility
      */
     protected function client(): HttpClientInterface
     {
-        return Utility::client();
+        return ClientUtility::client();
     }
 
     protected function clientResponse(): ResponseInterface
