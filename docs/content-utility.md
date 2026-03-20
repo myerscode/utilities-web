@@ -1,41 +1,47 @@
-# Content ClientUtility
-The content utility will allow you to simply get and interact with a URIs content
+# Content Utility
+
+Fetch and interact with a URL's content.
 
 ```php
-$utility = new ContentUtility('https://google.com');
+use Myerscode\Utilities\Web\ContentUtility;
+
+$utility = new ContentUtility('https://example.com');
 ```
 
-## client() : Client
-Get the client that the utility is using to communicate with the resource.
+## content(): string
+
+Get the string content of the URL's response.
 
 ```php
-$utility->client();
+$html = $utility->content();
 ```
 
-## response() : Myerscode\Resource\Response
-Get a Response object content, which contains the status of the response and string value.
+Throws `ContentNotFoundException` if the response is 404.
+
+## dom(): Dom
+
+Get a Symfony DomCrawler instance of the content.
 
 ```php
-$utility->dom();
+$dom = $utility->dom();
+$title = $dom->filterXPath('//title')->text();
 ```
 
-## content() : string
-Get the string response of the URIs content
+## response(): Response
+
+Get the full Response object containing status code, content and headers.
 
 ```php
-$utility->content();
+$response = $utility->response();
+$code = $response->code();
+$content = $response->content();
+$headers = $response->headers();
 ```
 
-## dom() : Myerscode\Resource\Dom
-Get a Dom object of the URIs content
+## url(): string
+
+Get the URL the utility is using.
 
 ```php
-$utility->dom();
-```
-
-## url() : string
-Get the URI that the utility is using
-
-```php
-$utility->url();
+$url = $utility->url();
 ```

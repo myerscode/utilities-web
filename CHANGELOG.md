@@ -7,25 +7,33 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ## Unreleased
 
 ### Changed
-- Upgrade minimum PHP version to ^8.5
-- Modernise codebase with Rector (strict types, typed properties, yield data providers, first-class callables)
-- Update php-curl-class to ^12.0, Symfony packages to ^8.0, PHPUnit to ^13.0
-- Fix broken `UriUtility::check()` method to delegate to `ResponseUtility`
-- Fix `getQueryParameters()` null safety for `parse_url` return
-- Add type hints to `getQueryString()` parameters
-- Fix `ResponseUtility::setUrl()` to properly handle `UriUtility` parameter
+- Minimum PHP version ^8.5
+- Replace `METHOD_*` constants with `ResponseFrom` enum in `UriUtility::check()`
+- Consolidate HTTP client creation in `ClientUtility`
+- Modernise codebase with Rector (strict types, typed properties, coding style)
+- Bump PHPStan to level 9
+- Harden phpunit.xml with failOnRisky and failOnWarning
+- Upgrade GitHub Actions (checkout v4, codecov v5)
+- Update documentation for all utilities
 
 ### Added
-- PHPStan static analysis at level 8
-- Laravel Pint code style enforcement
-- Security audit CI workflow
-- Dependabot configuration for automated dependency updates
-- PHP version badge and Requirements section in README
+- Static analysis CI workflow (PHPStan + Pint)
+- Comprehensive test suite (136 tests, up from 90)
+- Tests for Utility, ClientUtility, ResponseFrom, Response resource
+- Tests for ResponseUtility construct, check, timeout, follow redirects
+- Tests for ContentUtility response exception paths
+- Tests for UriUtility scheme, path, query, aliases
+- Composer `ci` and `rector` scripts
+
+### Fixed
+- `UriUtility::getQueryParameters()` bug where `parse_url` on bare query string returned null
 
 ### Removed
-- `InvalidQueryParamsException` (never thrown)
-- `InvalidSchemeException` (never thrown)
-- `squizlabs/php_codesniffer` (replaced by Laravel Pint)
+- `CurlInitException` (never thrown)
+- Unused `$requestOptions` from `Utility`, `ClientUtility`, `ContentUtility`
+- Duplicate `client()` method from `Utility` (consolidated in `ClientUtility`)
+- `ext-sockets` from production requirements (only needed by dev deps)
+- Dead commented-out code and stale docblocks
 
 ## [1.3.1](https://github.com/myerscode/utilities-web/releases/tag/1.3.1) - 2019-05-24
 

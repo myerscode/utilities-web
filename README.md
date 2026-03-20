@@ -1,5 +1,5 @@
 # Web Utilities
-> a fluent interface for interacting with web sites, page content and urls.
+> A fluent interface for interacting with web sites, page content and URLs.
 
 [![Latest Stable Version](https://poser.pugx.org/myerscode/utilities-web/v/stable)](https://packagist.org/packages/myerscode/utilities-web)
 [![Total Downloads](https://poser.pugx.org/myerscode/utilities-web/downloads)](https://packagist.org/packages/myerscode/utilities-web)
@@ -11,25 +11,44 @@
 ## Requirements
 
 - PHP >= 8.5
-
+- ext-curl
 
 ## Install
 
-You can install this package via composer:
-
-``` bash
+```bash
 composer require myerscode/utilities-web
 ```
 
+## Usage
+
+```php
+use Myerscode\Utilities\Web\Utility;
+
+$web = new Utility('https://example.com');
+
+// Get content from a URL
+$content = $web->content()->content();
+
+// Get a DOM crawler for the page
+$dom = $web->content()->dom();
+
+// Ping a host
+$result = $web->ping()->ping();
+
+// Work with URLs
+$uri = $web->url();
+```
+
 ## Available Utilities
-This package has helpers to interact with various aspects of web content.
 
-### [Content ClientUtility](docs/content-utility.md)
+### [Content Utility](docs/content-utility.md)
+Fetch and interact with web page content.
 
-### [Ping ClientUtility](docs/ping-utility.md)
+### [Ping Utility](docs/ping-utility.md)
+Ping hosts and check latency.
 
-### [URI ClientUtility](docs/uri-utility.md)
-
+### [URI Utility](docs/uri-utility.md)
+Parse, build and manipulate URLs.
 
 ## License
 

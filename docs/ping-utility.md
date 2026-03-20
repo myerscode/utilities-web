@@ -1,13 +1,26 @@
-# Ping ClientUtility
-The content utility will allow you to ping a given URL.
+# Ping Utility
+
+Ping a host and check if it's alive.
 
 ```php
-$utility = new PingUtility('https://google.com');
+use Myerscode\Utilities\Web\PingUtility;
+
+$utility = new PingUtility('https://example.com');
 ```
 
-## ping() : array
-Ping the URL and return meta of if it is alive and the latency of the ping.
+## ping(): array
+
+Ping the host and return whether it's alive and the latency in milliseconds.
 
 ```php
-$utility->ping();
+$result = $utility->ping();
+// ['alive' => true, 'latency' => 12.0]
+```
+
+## url(): string
+
+Get the URL the utility is using.
+
+```php
+$url = $utility->url();
 ```
