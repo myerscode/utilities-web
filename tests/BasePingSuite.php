@@ -8,11 +8,7 @@ use Myerscode\Utilities\Web\PingUtility;
 
 abstract class BasePingSuite extends BaseSuite
 {
-    /**
-     * @param $url
-     * @return PingUtility
-     */
-    public function utility($url)
+    public function utility(string $url): PingUtility
     {
         return new PingUtility($url);
     }

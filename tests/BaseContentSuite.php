@@ -8,13 +8,8 @@ use Myerscode\Utilities\Web\ContentUtility;
 
 abstract class BaseContentSuite extends BaseSuite
 {
-    /**
-     * @param $url
-     * @param $requestOptions
-     * @return ContentUtility
-     */
-    public function utility($url, $requestOptions = [])
+    public function utility(string $url): ContentUtility
     {
-        return new ContentUtility($url, $requestOptions);
+        return new ContentUtility($url);
     }
 }

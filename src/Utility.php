@@ -7,14 +7,6 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 class Utility
 {
-    public const METHOD_CURL = 1;
-
-    public const METHOD_HEADERS = 2;
-
-    public const METHOD_HTTP = 3;
-
-    public const METHOD_SYSTEM = 4;
-
     public function __construct(private readonly string $url)
     {
     }
@@ -32,7 +24,7 @@ class Utility
      */
     public function content(): ContentUtility
     {
-        return (new ContentUtility($this->url));
+        return new ContentUtility($this->url);
     }
 
     /**
@@ -40,7 +32,7 @@ class Utility
      */
     public function ping(): PingUtility
     {
-        return (new PingUtility($this->url));
+        return new PingUtility($this->url);
     }
 
     /**
@@ -48,6 +40,6 @@ class Utility
      */
     public function url(): UriUtility
     {
-        return (new UriUtility($this->url));
+        return new UriUtility($this->url);
     }
 }

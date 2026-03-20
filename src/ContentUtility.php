@@ -19,21 +19,13 @@ use Symfony\Contracts\HttpClient\ResponseInterface;
 class ContentUtility
 {
     /**
-     * Collection of request options to be passed to guzzle
-     */
-    private array $requestOptions = [
-        'timeout' => 60,
-    ];
-
-    /**
      * The url to get content from
      */
     private readonly UriUtility $uriUtility;
 
-    public function __construct(public readonly string $url, array $requestOptions = [])
+    public function __construct(public readonly string $url)
     {
         $this->uriUtility = new UriUtility($url);
-        $this->setRequestOptions($requestOptions);
     }
 
     /**
@@ -110,13 +102,4 @@ class ContentUtility
         );
     }
 
-    /**
-     * Set options to use in a request against the url
-     *
-     * @param $requestOptions
-     */
-    private function setRequestOptions(array $requestOptions): void
-    {
-        $this->requestOptions = array_merge($this->requestOptions, $requestOptions);
-    }
 }

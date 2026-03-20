@@ -16,9 +16,6 @@ use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
 
 class ResponseUtility
 {
-    /**
-     * @var string
-     */
     public const DEFAULT_SCHEME = 'https://';
 
     protected int $maxRedirects = 10;
@@ -172,9 +169,7 @@ class ResponseUtility
     }
 
     /**
-     * Set the timeout.
-     *
-     * @param  int  $timeout  Time to wait in seconds.
+     * Set the timeout in seconds.
      */
     public function setTimeout(int $timeout): ResponseUtility
     {
@@ -185,8 +180,6 @@ class ResponseUtility
 
     /**
      * Get the timeout.
-     *
-     * @return int Current timeout for Ping.
      */
     public function timeout(): int
     {
@@ -196,8 +189,6 @@ class ResponseUtility
 
     /**
      * Get the url the utility is using.
-     *
-     * @return string The url
      */
     public function uri(): string
     {

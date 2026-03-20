@@ -8,16 +8,9 @@ use Symfony\Component\HttpClient\HttpClient;
 class ClientUtility
 {
     /**
-     * Collection of request options to be passed to guzzle
-     */
-    public static array $requestOptions = [
-        'timeout' => 60,
-    ];
-
-    /**
      * Get a http client for utilities to use
      */
-    public static function client(array $requestOptions = []): HttpClientInterface
+    public static function client(): HttpClientInterface
     {
         return HttpClient::create();
     }

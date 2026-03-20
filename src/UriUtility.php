@@ -4,9 +4,9 @@ namespace Myerscode\Utilities\Web;
 
 use League\Uri\Components\Query;
 use League\Uri\Http;
+use Myerscode\Utilities\Web\Data\ResponseFrom;
 use Myerscode\Utilities\Web\Exceptions\EmptyUrlException;
 use Myerscode\Utilities\Web\Exceptions\InvalidUrlException;
-use Myerscode\Utilities\Web\Exceptions\UnsupportedCheckMethodException;
 use Myerscode\Utilities\Web\Resource\Response;
 
 class UriUtility
@@ -21,9 +21,6 @@ class UriUtility
     private int $timeout = 10;
 
 
-    /**
-     * Utility constructor.
-     */
     public function __construct(string $uri)
     {
         $this->setUrl($uri);
@@ -52,18 +49,12 @@ class UriUtility
      *
      * @throws EmptyUrlException
      * @throws InvalidUrlException
-     * @throws UnsupportedCheckMethodException
      */
-    public function check(int $method = Utility::METHOD_CURL): Response
+    public function check(ResponseFrom $method = ResponseFrom::CURL): Response
     {
         $responseUtility = new ResponseUtility($this->value());
 
-        return $responseUtility->check(match ($method) {
-            Utility::METHOD_CURL => Data\ResponseFrom::CURL,
-            Utility::METHOD_HEADERS => Data\ResponseFrom::HEADERS,
-            Utility::METHOD_HTTP => Data\ResponseFrom::HTTP,
-            default => throw new UnsupportedCheckMethodException(),
-        });
+        return $responseUtility->check($method);
     }
 
     /**
@@ -139,7 +130,7 @@ class UriUtility
     {
         $port = $this->http->getPort();
 
-        if (is_null($port)) {
+        if ($port === null) {
             return $this->isHttps() ? 443 : 80;
         }
 
@@ -180,8 +171,6 @@ class UriUtility
 
     /**
      * Get the timeout.
-     *
-     * @return int Current timeout for Ping.
      */
     public function timeout(): int
     {
@@ -190,8 +179,6 @@ class UriUtility
 
     /**
      * Get the url the utility is using.
-     *
-     * @return string The url
      */
     public function uri(): string
     {
@@ -200,8 +187,6 @@ class UriUtility
 
     /**
      * Get the url the utility is using.
-     *
-     * @return string The url
      */
     public function url(): string
     {
