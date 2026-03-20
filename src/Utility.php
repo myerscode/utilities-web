@@ -15,15 +15,6 @@ class Utility
 
     public const METHOD_SYSTEM = 4;
 
-    /**
-     * Collection of request options to be passed to guzzle
-     *
-     * @var array
-     */
-    protected static $requestOptions = [
-        'timeout' => 60,
-    ];
-
     public function __construct(private readonly string $url)
     {
     }
@@ -34,7 +25,6 @@ class Utility
     public static function client(): HttpClientInterface
     {
         return HttpClient::create();
-        //        return $client->request($url, array_merge([], self::$requestOptions, $requestOptions));
     }
 
     /**

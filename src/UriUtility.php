@@ -2,10 +2,8 @@
 
 namespace Myerscode\Utilities\Web;
 
-use Exception;
 use League\Uri\Components\Query;
 use League\Uri\Http;
-use Myerscode\Utilities\Web\Exceptions\CurlInitException;
 use Myerscode\Utilities\Web\Exceptions\EmptyUrlException;
 use Myerscode\Utilities\Web\Exceptions\InvalidUrlException;
 use Myerscode\Utilities\Web\Exceptions\UnsupportedCheckMethodException;
@@ -33,8 +31,6 @@ class UriUtility
 
     /**
      * Add or override query parameters to the uri
-     *
-     * @throws Exception
      */
     public function addQueryParameter(string|array $params): self
     {
@@ -57,7 +53,6 @@ class UriUtility
      * @throws EmptyUrlException
      * @throws InvalidUrlException
      * @throws UnsupportedCheckMethodException
-     * @throws CurlInitException
      */
     public function check(int $method = Utility::METHOD_CURL): Response
     {

@@ -6,7 +6,6 @@ use Exception;
 use Curl\Curl;
 use League\Uri\Http;
 use Myerscode\Utilities\Web\Data\ResponseFrom;
-use Myerscode\Utilities\Web\Exceptions\CurlInitException;
 use Myerscode\Utilities\Web\Exceptions\EmptyUrlException;
 use Myerscode\Utilities\Web\Exceptions\InvalidUrlException;
 use Myerscode\Utilities\Web\Exceptions\UnsupportedCheckMethodException;
@@ -47,7 +46,6 @@ class ResponseUtility
      * @throws EmptyUrlException
      * @throws InvalidUrlException
      * @throws UnsupportedCheckMethodException
-     * @throws CurlInitException
      */
     public function check(string|ResponseFrom $method): Response
     {
@@ -161,15 +159,6 @@ class ResponseUtility
         }
 
         return new Response($statusCode);
-        //        try {
-        //
-        //
-        //
-        //
-        //            return new Response($response->getStatusCode(), $response->getContent());
-        //        } catch (Exception) {
-        //            throw new InvalidUrlException();
-        //        }
     }
 
     /**
