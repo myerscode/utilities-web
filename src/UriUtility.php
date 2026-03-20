@@ -63,10 +63,10 @@ class UriUtility
     public function getQueryParameters(): array
     {
         $parameters = [];
-        $queryString = parse_url($this->query(), PHP_URL_QUERY);
+        $query = $this->query();
 
-        if (is_string($queryString)) {
-            parse_str($queryString, $parameters);
+        if ($query !== '') {
+            parse_str($query, $parameters);
         }
 
         return $parameters;
