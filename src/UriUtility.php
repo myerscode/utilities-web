@@ -50,11 +50,11 @@ class UriUtility
      * @throws EmptyUrlException
      * @throws InvalidUrlException
      */
-    public function check(ResponseFrom $method = ResponseFrom::CURL): Response
+    public function check(ResponseFrom $responseFrom = ResponseFrom::CURL): Response
     {
         $responseUtility = new ResponseUtility($this->value());
 
-        return $responseUtility->check($method);
+        return $responseUtility->check($responseFrom);
     }
 
     /**

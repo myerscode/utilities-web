@@ -16,6 +16,7 @@ final class ConstructTest extends BaseResponseSuite
 
         $this->assertSame('https://example.com', $utility->value());
     }
+
     public function testConstructWithString(): void
     {
         $utility = $this->utility('https://example.com');
@@ -25,8 +26,8 @@ final class ConstructTest extends BaseResponseSuite
 
     public function testConstructWithUriUtility(): void
     {
-        $uri = new UriUtility('https://example.com');
-        $utility = $this->utility($uri->value());
+        $uriUtility = new UriUtility('https://example.com');
+        $utility = $this->utility($uriUtility->value());
 
         $this->assertSame('https://example.com', $utility->value());
     }
@@ -51,18 +52,18 @@ final class ConstructTest extends BaseResponseSuite
 
         $this->assertFalse($utility->followRedirects());
 
-        $result = $utility->setFollowRedirects(true);
+        $responseUtility = $utility->setFollowRedirects(true);
 
-        $this->assertSame($utility, $result);
+        $this->assertSame($utility, $responseUtility);
         $this->assertTrue($utility->followRedirects());
     }
 
     public function testSetTimeoutReturnsInstance(): void
     {
         $utility = $this->utility('https://example.com');
-        $result = $utility->setTimeout(30);
+        $responseUtility = $utility->setTimeout(30);
 
-        $this->assertSame($utility, $result);
+        $this->assertSame($utility, $responseUtility);
         $this->assertSame(30, $utility->timeout());
     }
 

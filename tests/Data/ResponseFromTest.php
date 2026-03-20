@@ -15,6 +15,7 @@ final class ResponseFromTest extends TestCase
 
         $this->assertCount(3, $cases);
     }
+
     public function testEnumValues(): void
     {
         $this->assertSame('curl', ResponseFrom::CURL->value);

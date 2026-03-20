@@ -14,6 +14,7 @@ final class AliasTest extends BaseUriSuite
 
         $this->assertSame(10, $utility->timeout());
     }
+
     public function testUriReturnsValue(): void
     {
         $utility = $this->utility('https://example.com');
