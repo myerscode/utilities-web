@@ -52,8 +52,15 @@
   "scripts": {
     "lint": "vendor/bin/pint",
     "analyse": "vendor/bin/phpstan analyse",
+    "rector": "vendor/bin/rector process",
     "tests": "vendor/bin/phpunit --testdox --no-coverage --colors=always",
     "test-coverage": "XDEBUG_MODE=coverage vendor/bin/phpunit --testdox --colors=always",
-    "security-audit": "@composer audit"
+    "security-audit": "@composer audit",
+    "ci": [
+      "@lint",
+      "@analyse",
+      "@tests",
+      "@security-audit"
+    ]
   }
 }
