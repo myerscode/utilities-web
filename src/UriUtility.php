@@ -88,8 +88,6 @@ class UriUtility
 
     /**
      * Get the urls query parameters as a string
-     *
-     * @param int $enc_type
      */
     public function getQueryString(string $numeric_prefix = '', string $arg_separator = '&', int $enc_type = PHP_QUERY_RFC1738): string
     {

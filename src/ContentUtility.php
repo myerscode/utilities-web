@@ -24,6 +24,7 @@ class ContentUtility
     private array $requestOptions = [
         'timeout' => 60,
     ];
+
     /**
      * The url to get content from
      */

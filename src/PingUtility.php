@@ -12,6 +12,7 @@ class PingUtility
     private int $timeout = 1;
 
     private int $ttl = 255;
+
     /**
      * The url ping
      */
