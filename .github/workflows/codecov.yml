@@ -1,40 +1,36 @@
-name: Code Coverage
+name: codecov
 
 on:
+  schedule:
+    - cron: "0 0 * * *"
   push:
-    branches: [main]
+    branches: [ main ]
 
 jobs:
-  coverage:
-    runs-on: ubuntu-latest
+  run:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ ubuntu-latest ]
+        php-versions: [ '8.5' ]
 
-    name: Code Coverage
+    name: PHP ${{ matrix.php-versions }} - ${{ matrix.os }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
-
+        uses: actions/checkout@v6
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.5'
+          php-version: ${{ matrix.php-versions }}
           coverage: xdebug
-          extensions: sockets, curl
-
+          extensions: intl, fileinfo
       - name: Install dependencies
         run: composer install --prefer-dist --no-progress --no-interaction
-
-      - name: Enable ping
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y iputils-ping
-          sudo chmod u+s /bin/ping
-
-      - name: Run tests with coverage
-        run: vendor/bin/phpunit --coverage-clover coverage.xml
-
-      - name: Upload to Codecov
+      - name: Run Test Suite
+        run: vendor/bin/phpunit --testdox --coverage-clover ./coverage.xml
+      - name: Code Coverage
         uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: ./coverage.xml
-          fail_ci_if_error: true
+          verbose: true
