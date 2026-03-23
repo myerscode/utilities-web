@@ -3,3 +3,4 @@ composer.lock
 .reports
 .phpunit.cache
 .php-cs-fixer.cache
+coverage.xml
