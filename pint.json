@@ -6,6 +6,7 @@
             "import_constants": true,
             "import_functions": true
         },
+        "no_unused_imports": true,
         "ordered_class_elements": {
             "order": [
                 "use_trait",
@@ -35,6 +36,10 @@
                 "method_private"
             ],
             "sort_algorithm": "alpha"
+        },
+        "single_quote": true,
+        "trailing_comma_in_multiline": {
+            "elements": ["arrays", "arguments", "parameters"]
         }
     }
 }

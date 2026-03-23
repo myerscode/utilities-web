@@ -98,7 +98,7 @@ class ContentUtility
     {
         return $this->client()->request(
             'GET',
-            $this->uriUtility->url()
+            $this->uriUtility->url(),
         );
     }
 

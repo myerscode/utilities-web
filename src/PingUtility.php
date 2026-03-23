@@ -60,7 +60,7 @@ class PingUtility
         }
 
         foreach ($output as $line) {
-            if (preg_match("/time[=<]?\\s?(?<time>\\d+(?:\\.\\d+)?)\\s?ms/", $line, $latencyMatches)) {
+            if (preg_match('/time[=<]?\\s?(?<time>\\d+(?:\\.\\d+)?)\\s?ms/', $line, $latencyMatches)) {
                 $ping['alive'] = true;
                 $ping['latency'] = round((float)$latencyMatches['time']);
                 break;

@@ -106,7 +106,7 @@ class ResponseUtility
                 'http' => [
                     'timeout' => $this->timeout(),
                 ],
-            ]
+            ],
         );
 
         $headers = @get_headers($this->value());
