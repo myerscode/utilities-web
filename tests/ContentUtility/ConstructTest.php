@@ -33,7 +33,7 @@ final class ConstructTest extends BaseContentSuite
     #[DataProvider('dataProvider')]
     public function testConstructor(string $expected, string $string): void
     {
-        $this->assertEquals($expected, $this->utility($string)->url());
+        $this->assertSame($expected, $this->utility($string)->url());
     }
 
 }
