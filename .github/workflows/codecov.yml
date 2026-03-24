@@ -23,7 +23,7 @@ jobs:
         with:
           php-version: ${{ matrix.php-versions }}
           coverage: xdebug
-          extensions: intl, fileinfo
+          extensions: sockets, curl, intl, fileinfo
       - name: Install dependencies
         run: composer install --prefer-dist --no-progress --no-interaction
       - name: Run Test Suite
