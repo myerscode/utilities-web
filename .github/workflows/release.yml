@@ -11,14 +11,21 @@ on:
     tags:
       - '[0-9][0-9][0-9][0-9].*'
 
+permissions:
+  contents: write
+  pull-requests: write
+
 jobs:
   release:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
     steps:
       - name: Checkout
         uses: actions/checkout@v6
+        with:
+          ref: main
+          fetch-depth: 0
+          token: ${{ secrets.PAT || secrets.GITHUB_TOKEN }}
+          persist-credentials: true
 
       - name: Determine version
         id: version
@@ -42,9 +49,43 @@ jobs:
           git tag "${{ steps.version.outputs.tag }}"
           git push origin "${{ steps.version.outputs.tag }}"
 
+      - name: Get previous tag
+        id: previous
+        run: |
+          PREVIOUS=$(git tag --sort=-v:refname | grep -E '^[0-9]{4}\.' | grep -v "^${{ steps.version.outputs.tag }}$" | head -1)
+          echo "tag=$PREVIOUS" >> "$GITHUB_OUTPUT"
+
+      - name: Generate changelog
+        id: changelog
+        uses: requarks/changelog-action@v1
+        with:
+          token: ${{ github.token }}
+          fromTag: ${{ steps.version.outputs.tag }}
+          toTag: ${{ steps.previous.outputs.tag }}
+          excludeTypes: build,docs,other,style,ci,chore
+          useGitmojis: false
+          writeToFile: false
+
       - name: Create GitHub release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.version.outputs.tag }}
           name: ${{ steps.version.outputs.tag }}
-          generate_release_notes: true
+          body: ${{ steps.changelog.outputs.changes }}
+
+      - name: Write changelog to file
+        uses: requarks/changelog-action@v1
+        with:
+          token: ${{ github.token }}
+          fromTag: ${{ steps.version.outputs.tag }}
+          toTag: ${{ steps.previous.outputs.tag }}
+          excludeTypes: build,docs,other,style,ci,chore
+          useGitmojis: false
+          writeToFile: true
+
+      - name: Commit updated CHANGELOG
+        uses: stefanzweifel/git-auto-commit-action@v7
+        with:
+          branch: main
+          commit_message: "docs: update CHANGELOG for ${{ steps.version.outputs.tag }}"
+          file_pattern: CHANGELOG.md

@@ -6,6 +6,9 @@ on:
   push:
     branches: [ main ]
 
+permissions:
+  contents: read
+
 jobs:
   run:
     runs-on: ${{ matrix.os }}
@@ -23,13 +26,13 @@ jobs:
         with:
           php-version: ${{ matrix.php-versions }}
           coverage: xdebug
-          extensions: sockets, curl
+          extensions: curl, dom, filter
       - name: Install dependencies
         run: composer install --prefer-dist --no-progress --no-interaction
       - name: Run Test Suite
         run: vendor/bin/phpunit --testdox --coverage-clover ./coverage.xml
       - name: Code Coverage
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@v6
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: ./coverage.xml
