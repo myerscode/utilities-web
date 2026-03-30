@@ -17,6 +17,7 @@ final class ValidationTest extends BaseResponseSuite
 
         new ResponseUtility('foo_bar');
     }
+
     public function testConstructorThrowsSyntaxErrorForMalformedUrl(): void
     {
         $this->expectException(SyntaxError::class);

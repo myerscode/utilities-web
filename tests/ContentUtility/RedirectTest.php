@@ -17,20 +17,20 @@ final class RedirectTest extends BaseContentSuite
     {
         $this->expectException(MaxRedirectsReachedException::class);
 
-        $mock = Mockery::mock(ContentUtility::class, ['https://localhost'])->makePartial();
-        $mock->shouldAllowMockingProtectedMethods();
+        $legacyMock = Mockery::mock(ContentUtility::class, ['https://localhost'])->makePartial();
+        $legacyMock->shouldAllowMockingProtectedMethods();
 
         $mockResponse = new MockResponse('', ['http_code' => 301]);
         // Force the mock response to resolve so we can trigger the redirect exception
         $mockResponse->getStatusCode();
 
-        $mock->shouldReceive('clientResponse')->once()->andReturnUsing(function () {
+        $legacyMock->shouldReceive('clientResponse')->once()->andReturnUsing(function (): never {
             throw new RedirectionException(new MockResponse('', [
                 'http_code' => 301,
                 'response_headers' => ['location' => 'https://example.com'],
             ]));
         });
 
-        $mock->response();
+        $legacyMock->response();
     }
 }

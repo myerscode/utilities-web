@@ -20,6 +20,7 @@ final class CheckTest extends BaseUriSuite
         $this->assertInstanceOf(Response::class, $response);
         $this->assertSame(200, $response->code());
     }
+
     public function testCheckReturnsResponse(): void
     {
         self::$server->setResponseOfPath('/uri-check', new TestResponse('', [], 200));
