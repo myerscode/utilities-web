@@ -25,6 +25,8 @@
   "require": {
     "php": "^8.5",
     "ext-curl": "*",
+    "ext-dom": "*",
+    "ext-filter": "*",
     "php-curl-class/php-curl-class": "^12.0",
     "symfony/http-client": "^8.0",
     "symfony/dom-crawler": "^8.0",
@@ -35,7 +37,6 @@
     "mockery/mockery": "^1.6",
     "donatj/mock-webserver": "^2.6",
     "phpunit/phpunit": "^13.0",
-    "rector/rector": "^2.3",
     "laravel/pint": "^1.29",
     "phpstan/phpstan": "^2.1"
   },
@@ -52,15 +53,8 @@
   "scripts": {
     "lint": "vendor/bin/pint",
     "analyse": "vendor/bin/phpstan analyse",
-    "rector": "vendor/bin/rector process",
     "tests": "vendor/bin/phpunit --testdox --no-coverage --colors=always",
-    "test-coverage": "XDEBUG_MODE=coverage vendor/bin/phpunit --testdox --colors=always",
-    "security-audit": "@composer audit",
-    "ci": [
-      "@lint",
-      "@analyse",
-      "@tests",
-      "@security-audit"
-    ]
+    "test-coverage": "vendor/bin/phpunit --testdox --colors=always",
+    "security-audit": "@composer audit"
   }
 }
