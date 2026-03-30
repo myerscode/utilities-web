@@ -5,8 +5,6 @@ namespace Myerscode\Utilities\Web;
 use League\Uri\Components\Query;
 use League\Uri\Http;
 use Myerscode\Utilities\Web\Data\ResponseFrom;
-use Myerscode\Utilities\Web\Exceptions\EmptyUrlException;
-use Myerscode\Utilities\Web\Exceptions\InvalidUrlException;
 use Myerscode\Utilities\Web\Resource\Response;
 
 class UriUtility
@@ -46,9 +44,6 @@ class UriUtility
 
     /**
      * Check the response from the uri
-     *
-     * @throws EmptyUrlException
-     * @throws InvalidUrlException
      */
     public function check(ResponseFrom $responseFrom = ResponseFrom::CURL): Response
     {
@@ -199,23 +194,6 @@ class UriUtility
     public function value(): string
     {
         return urldecode((string)$this->http);
-    }
-
-    /**
-     * Check the URL that will be used
-     *
-     * @throws EmptyUrlException
-     * @throws InvalidUrlException
-     */
-    protected function checkUrl(): void
-    {
-        if (in_array($this->value(), ['', '0'], true)) {
-            throw new EmptyUrlException();
-        }
-
-        if (filter_var($this->value(), FILTER_VALIDATE_URL) === false) {
-            throw new InvalidUrlException();
-        }
     }
 
     /**
