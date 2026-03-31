@@ -34,6 +34,7 @@
     "league/uri-components": "^7.5"
   },
   "require-dev": {
+    "ext-sockets": "*",
     "mockery/mockery": "^1.6",
     "donatj/mock-webserver": "^2.6",
     "phpunit/phpunit": "^13.0",
