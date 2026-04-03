@@ -53,6 +53,22 @@ class UriUtility
     }
 
     /**
+     * Compare two URIs for equality
+     */
+    public function equals(UriUtility $other): bool
+    {
+        return $this->value() === $other->value();
+    }
+
+    /**
+     * Get the URL fragment (the part after #)
+     */
+    public function fragment(): string
+    {
+        return $this->http->getFragment();
+    }
+
+    /**
      * Get an array of query parameters from the URL
      */
     public function getQueryParameters(): array
@@ -76,6 +92,14 @@ class UriUtility
     }
 
     /**
+     * Check if a query parameter exists
+     */
+    public function hasQueryParameter(string $key): bool
+    {
+        return array_key_exists($key, $this->getQueryParameters());
+    }
+
+    /**
      * Retrieve the host component of the URL.
      */
     public function host(): string
@@ -89,6 +113,14 @@ class UriUtility
     public function isHttps(): bool
     {
         return 'https' === strtolower($this->scheme());
+    }
+
+    /**
+     * Check if the URL is valid
+     */
+    public function isValid(): bool
+    {
+        return filter_var($this->value(), FILTER_VALIDATE_URL) !== false;
     }
 
 
@@ -141,6 +173,17 @@ class UriUtility
     }
 
     /**
+     * Remove a specific query parameter by key
+     */
+    public function removeQueryParameter(string $key): self
+    {
+        $params = $this->getQueryParameters();
+        unset($params[$key]);
+
+        return $this->setQuery($params);
+    }
+
+    /**
      * Get the URLS scheme
      */
     public function scheme(): string
@@ -173,6 +216,23 @@ class UriUtility
     }
 
     /**
+     * Get all parsed URL components as an array
+     *
+     * @return array{scheme: string, host: string, port: int, path: string, query: string, fragment: string}
+     */
+    public function toArray(): array
+    {
+        return [
+            'scheme' => $this->scheme(),
+            'host' => $this->host(),
+            'port' => $this->port(),
+            'path' => $this->path(),
+            'query' => $this->query(),
+            'fragment' => $this->fragment(),
+        ];
+    }
+
+    /**
      * Get the url the utility is using.
      */
     public function uri(): string
@@ -189,11 +249,71 @@ class UriUtility
     }
 
     /**
+     * Get the user info component of the URI
+     */
+    public function userInfo(): ?string
+    {
+        $userInfo = $this->http->getUserInfo();
+
+        return $userInfo !== '' ? $userInfo : null;
+    }
+
+    /**
      * Get the current URI
      */
     public function value(): string
     {
         return urldecode((string)$this->http);
+    }
+
+    /**
+     * Set or replace the URL fragment
+     */
+    public function withFragment(string $fragment): self
+    {
+        $this->http = $this->http->withFragment($fragment);
+
+        return $this;
+    }
+
+    /**
+     * Set or replace the URL host
+     */
+    public function withHost(string $host): self
+    {
+        $this->http = $this->http->withHost($host);
+
+        return $this;
+    }
+
+    /**
+     * Set or replace the URL path
+     */
+    public function withPath(string $path): self
+    {
+        $this->http = $this->http->withPath($path);
+
+        return $this;
+    }
+
+    /**
+     * Set or replace the URL port
+     */
+    public function withPort(?int $port): self
+    {
+        $this->http = $this->http->withPort($port);
+
+        return $this;
+    }
+
+    /**
+     * Set or replace the URL scheme
+     */
+    public function withScheme(string $scheme): self
+    {
+        $this->http = $this->http->withScheme($scheme);
+
+        return $this;
     }
 
     /**
