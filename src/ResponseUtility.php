@@ -12,6 +12,7 @@ use Myerscode\Utilities\Web\Resource\Response;
 use Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\ServerExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
+use Exception;
 
 class ResponseUtility
 {
@@ -150,7 +151,7 @@ class ResponseUtility
             $statusCode = 400;
         } catch (ServerExceptionInterface) {
             $statusCode = 500;
-        } catch (\Exception) {
+        } catch (Exception) {
             throw new InvalidUrlException();
         }
 
@@ -158,9 +159,28 @@ class ResponseUtility
     }
 
     /**
+     * Send a HEAD request using curl (lighter than GET for status checks)
+     *
+     * @throws EmptyUrlException
+     * @throws InvalidUrlException
+     */
+    public function head(): Response
+    {
+        return $this->fromCurl();
+    }
+
+    /**
+     * Check if the URL responds with a 2xx status code
+     */
+    public function isAlive(ResponseFrom $method = ResponseFrom::CURL): bool
+    {
+        return $this->check($method)->isSuccessful();
+    }
+
+    /**
      * Set whether or the utility should follow redirects
      */
-    public function setFollowRedirects(bool $followRedirects): ResponseUtility
+    public function setFollowRedirects(bool $followRedirects): self
     {
         $this->followRedirects = $followRedirects;
 
@@ -168,9 +188,19 @@ class ResponseUtility
     }
 
     /**
+     * Set the maximum number of redirects to follow
+     */
+    public function setMaxRedirects(int $maxRedirects): self
+    {
+        $this->maxRedirects = $maxRedirects;
+
+        return $this;
+    }
+
+    /**
      * Set the timeout in seconds.
      */
-    public function setTimeout(int $timeout): ResponseUtility
+    public function setTimeout(int $timeout): self
     {
         $this->timeout = $timeout;
 
