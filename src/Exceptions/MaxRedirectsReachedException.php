@@ -2,8 +2,6 @@
 
 namespace Myerscode\Utilities\Web\Exceptions;
 
-use Exception;
-
-class MaxRedirectsReachedException extends Exception
+class MaxRedirectsReachedException extends WebUtilityException
 {
 }

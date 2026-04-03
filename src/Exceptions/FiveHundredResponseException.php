@@ -2,8 +2,6 @@
 
 namespace Myerscode\Utilities\Web\Exceptions;
 
-use Exception;
-
-class FiveHundredResponseException extends Exception
+class FiveHundredResponseException extends WebUtilityException
 {
 }

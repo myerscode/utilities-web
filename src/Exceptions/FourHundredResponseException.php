@@ -2,8 +2,6 @@
 
 namespace Myerscode\Utilities\Web\Exceptions;
 
-use Exception;
-
-class FourHundredResponseException extends Exception
+class FourHundredResponseException extends WebUtilityException
 {
 }
