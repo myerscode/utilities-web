@@ -27,6 +27,8 @@ composer require myerscode/utilities-web
 use Myerscode\Utilities\Web\Utility;
 
 $web = new Utility('https://example.com');
+// or use the static factory
+$web = Utility::make('https://example.com');
 
 // Get content from a URL
 $content = $web->content()->content();
@@ -34,11 +36,22 @@ $content = $web->content()->content();
 // Get a DOM crawler for the page
 $dom = $web->content()->dom();
 
+// Decode JSON responses
+$data = $web->content()->json();
+
 // Ping a host
 $result = $web->ping()->ping();
+$alive = $web->ping()->isAlive();
+
+// Quick liveness check
+$web->isAlive();
 
 // Work with URLs
 $uri = $web->url();
+
+// Check response status
+$response = $web->response()->check(\Myerscode\Utilities\Web\Data\ResponseFrom::CURL);
+$response->isSuccessful(); // true for 2xx
 ```
 
 ## Available Utilities
@@ -51,6 +64,20 @@ Ping hosts and check latency.
 
 ### [URI Utility](docs/uri-utility.md)
 Parse, build and manipulate URLs.
+
+## Exception Handling
+
+All package exceptions extend `Myerscode\Utilities\Web\Exceptions\WebUtilityException`, which extends `RuntimeException`. This allows catching all package exceptions in one go:
+
+```php
+use Myerscode\Utilities\Web\Exceptions\WebUtilityException;
+
+try {
+    $content = $web->content()->content();
+} catch (WebUtilityException $e) {
+    // Handle any package exception
+}
+```
 
 ## License
 
