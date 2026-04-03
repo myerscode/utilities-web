@@ -9,6 +9,14 @@ class Utility
     }
 
     /**
+     * Create a new utility instance
+     */
+    public static function make(string $url): self
+    {
+        return new self($url);
+    }
+
+    /**
      * Get the content utility
      */
     public function content(): ContentUtility
@@ -17,11 +25,27 @@ class Utility
     }
 
     /**
+     * Quick liveness check — is the URL responding with 2xx?
+     */
+    public function isAlive(): bool
+    {
+        return $this->response()->isAlive();
+    }
+
+    /**
      * Get the Ping utility
      */
     public function ping(): PingUtility
     {
         return new PingUtility($this->url);
+    }
+
+    /**
+     * Get the response utility
+     */
+    public function response(): ResponseUtility
+    {
+        return new ResponseUtility($this->url);
     }
 
     /**
