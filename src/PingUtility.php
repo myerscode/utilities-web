@@ -27,7 +27,23 @@ class PingUtility
     }
 
     /**
-     * Ping a urls host
+     * Check if the host is alive
+     */
+    public function isAlive(): bool
+    {
+        return $this->ping()['alive'];
+    }
+
+    /**
+     * Get the latency in milliseconds, or null if unreachable
+     */
+    public function latency(): ?float
+    {
+        return $this->ping()['latency'];
+    }
+
+    /**
+     * Ping a urls host and return whether it's alive and the latency
      */
     public function ping(): array
     {
@@ -36,20 +52,15 @@ class PingUtility
             'latency' => null,
         ];
 
-        $ttl = $this->ttl;
-        $timeout = $this->timeout;
-        $host = escapeshellarg($this->uriUtility->host());
-
+        $host = $this->uriUtility->host();
         $pingCmd = $this->getPingCommand($host);
+        $escapedHost = escapeshellarg($host);
 
-        // Construct the ping command
-        if (str_starts_with(strtoupper(PHP_OS), 'WIN')) {
-            $exec_string = sprintf('%s -n 1 -i %d -w %d %s', $pingCmd, $ttl, $timeout * 1000, $host);
-        } elseif (strtoupper(PHP_OS) === 'DARWIN') {
-            $exec_string = sprintf('%s -c 1 -t %d %s', $pingCmd, $ttl, $host);
-        } else {
-            $exec_string = sprintf('%s -c 1 -t %d -w %d %s', $pingCmd, $ttl, $timeout, $host);
-        }
+        $exec_string = match ($this->detectOs()) {
+            'WIN' => sprintf('%s -n 1 -i %d -w %d %s', $pingCmd, $this->ttl, $this->timeout * 1000, $escapedHost),
+            'DARWIN' => sprintf('%s -c 1 -t %d %s', $pingCmd, $this->ttl, $escapedHost),
+            default => sprintf('%s -c 1 -t %d -w %d %s', $pingCmd, $this->ttl, $this->timeout, $escapedHost),
+        };
 
         $output = [];
 
@@ -60,9 +71,9 @@ class PingUtility
         }
 
         foreach ($output as $line) {
-            if (preg_match('/time[=<]?\\s?(?<time>\\d+(?:\\.\\d+)?)\\s?ms/', $line, $latencyMatches)) {
+            if (preg_match('/time[=<]?\s?(?<time>\d+(?:\.\d+)?)\s?ms/', $line, $latencyMatches)) {
                 $ping['alive'] = true;
-                $ping['latency'] = round((float)$latencyMatches['time']);
+                $ping['latency'] = round((float) $latencyMatches['time']);
                 break;
             }
         }
@@ -70,9 +81,47 @@ class PingUtility
         return $ping;
     }
 
+    /**
+     * Set the timeout in seconds
+     */
+    public function setTimeout(int $timeout): self
+    {
+        $this->timeout = $timeout;
+
+        return $this;
+    }
+
+    /**
+     * Set the TTL (time to live)
+     */
+    public function setTtl(int $ttl): self
+    {
+        $this->ttl = $ttl;
+
+        return $this;
+    }
+
     public function url(): string
     {
         return $this->uriUtility->value();
+    }
+
+    /**
+     * Detect the operating system family
+     */
+    private function detectOs(): string
+    {
+        $os = strtoupper(PHP_OS);
+
+        if (str_starts_with($os, 'WIN')) {
+            return 'WIN';
+        }
+
+        if ($os === 'DARWIN') {
+            return 'DARWIN';
+        }
+
+        return 'LINUX';
     }
 
     /**
@@ -83,16 +132,11 @@ class PingUtility
     private function getPingCommand(string $host): string
     {
         $isIPv6 = filter_var($host, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6);
+        $os = $this->detectOs();
 
-        if (str_starts_with(strtoupper(PHP_OS), 'WIN')) {
-            $pingCmd = 'ping';
-        } elseif (strtoupper(PHP_OS) === 'DARWIN') {
-            $pingCmd = 'ping';
-        } else {
-            $pingCmd = $isIPv6 ? 'ping6' : 'ping';
-        }
+        $pingCmd = ($os !== 'LINUX' || !$isIPv6) ? 'ping' : 'ping6';
 
-        $checkCmd = (str_starts_with(strtoupper(PHP_OS), 'WIN')) ? 'where ' : 'which ';
+        $checkCmd = ($os === 'WIN') ? 'where ' : 'which ';
 
         exec($checkCmd . $pingCmd . ' 2>&1', $output, $returnCode);
 
