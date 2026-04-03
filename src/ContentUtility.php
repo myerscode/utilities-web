@@ -70,7 +70,7 @@ class ContentUtility
         } catch (TransportExceptionInterface $e) {
             throw new NetworkErrorException($e->getMessage(), $e->getCode(), $e);
         } catch (ClientExceptionInterface $e) {
-            throw new FourHundredResponseException($e->getMessage(), $e->getCode(), $e);
+            throw new FourHundredResponseException($e->getMessage(), $e->getResponse()->getStatusCode(), $e);
         } catch (RedirectionExceptionInterface) {
             throw new MaxRedirectsReachedException();
         } catch (ServerExceptionInterface) {
