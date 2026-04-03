@@ -203,10 +203,8 @@ class UriUtility
     {
         $trimmed = trim($uri);
 
-        // check if a scheme is present, if not we need to give it one
-        preg_match_all('/(https:\/\/)|(http:\/\/)/', $trimmed, $matches, PREG_SET_ORDER, 0);
-
-        if ($matches === []) {
+        // check if a scheme is present at the start, if not we need to give it one
+        if (!preg_match('#^https?://#i', $trimmed)) {
             $trimmed = 'https://' . $trimmed;
         }
 
