@@ -2,8 +2,6 @@
 
 namespace Myerscode\Utilities\Web\Exceptions;
 
-use Exception;
-
-class EmptyUrlException extends Exception
+class EmptyUrlException extends WebUtilityException
 {
 }

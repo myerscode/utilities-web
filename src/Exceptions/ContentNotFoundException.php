@@ -2,8 +2,6 @@
 
 namespace Myerscode\Utilities\Web\Exceptions;
 
-use Exception;
-
-class ContentNotFoundException extends Exception
+class ContentNotFoundException extends WebUtilityException
 {
 }

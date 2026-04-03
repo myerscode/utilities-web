@@ -2,8 +2,6 @@
 
 namespace Myerscode\Utilities\Web\Exceptions;
 
-use Exception;
-
-class NetworkErrorException extends Exception
+class NetworkErrorException extends WebUtilityException
 {
 }

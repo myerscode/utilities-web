@@ -2,7 +2,6 @@
 
 namespace Myerscode\Utilities\Web;
 
-use Exception;
 use Curl\Curl;
 use League\Uri\Http;
 use Myerscode\Utilities\Web\Data\ResponseFrom;
@@ -151,7 +150,7 @@ class ResponseUtility
             $statusCode = 400;
         } catch (ServerExceptionInterface) {
             $statusCode = 500;
-        } catch (Exception) {
+        } catch (\Exception) {
             throw new InvalidUrlException();
         }
 
