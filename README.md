@@ -5,7 +5,7 @@
 [![Total Downloads](https://poser.pugx.org/myerscode/utilities-web/downloads)](https://packagist.org/packages/myerscode/utilities-web)
 [![PHP Version Require](http://poser.pugx.org/myerscode/utilities-web/require/php)](https://packagist.org/packages/myerscode/utilities-web)
 [![License](https://poser.pugx.org/myerscode/utilities-web/license)](https://github.com/myerscode/utilities-web/blob/main/LICENSE)
-[![Tests](https://github.com/myerscode/utilities-web/actions/workflows/tests.yml/badge.svg?branch=main)](https://github.com/myerscode/utilities-web/actions/workflows/tests.yml)
+[![Tests](https://github.com/myerscode/utilities-web/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/myerscode/utilities-web/actions/workflows/tests.yml)
 [![codecov](https://codecov.io/gh/myerscode/utilities-web/graph/badge.svg)](https://codecov.io/gh/myerscode/utilities-web)
 
 ## Requirements
