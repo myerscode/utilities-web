@@ -18,6 +18,10 @@ jobs:
       php-versions: "['8.5']"
       os: "['ubuntu-latest', 'macos-latest', 'windows-latest']"
       extensions: "curl, dom, filter, sockets"
+      # Exclude the live-network ping suite: it shells out to the system ping
+      # against real hosts, so it is nondeterministic on CI runners that block
+      # outbound ICMP. Run it locally with `--group network`.
+      test-command: "vendor/bin/phpunit --testdox --no-coverage --exclude-group network"
 
   lint:
     uses: myerscode/workflows/.github/workflows/php-lint.yml@v1

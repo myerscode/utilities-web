@@ -5,9 +5,18 @@ declare(strict_types=1);
 namespace Tests\PingUtility;
 
 use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\Group;
 use Tests\BasePingSuite;
 use Iterator;
 
+/**
+ * Exercises the real system ping command against live hosts, so its result
+ * depends on the runner's outbound network/ICMP. Tagged 'network' and excluded
+ * from CI (see ci.yml) to avoid nondeterministic failures; run locally or with
+ * `--group network`. See the Option B ticket for making PingUtility injectable
+ * so the parse logic can be unit-tested without a live network.
+ */
+#[Group('network')]
 final class SystemPingTest extends BasePingSuite
 {
     protected function setUp(): void
