@@ -4,6 +4,26 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [CalVer](https://calver.org/) (`YYYY.MINOR.PATCH`).
 
+## [2026.0.1] - 2026-10-31
+### New Features
+- [`1625651`](https://github.com/myerscode/utilities-web/commit/1625651e017d549c0a2b2c8745db5ef77646cec8) - **response**: add status helpers and methods *(commit by [@oniice](https://github.com/oniice))*
+- [`fcb9845`](https://github.com/myerscode/utilities-web/commit/fcb98455e17641f17a3a5c4cdbfee033b4bc64ed) - **content**: add new content methods *(commit by [@oniice](https://github.com/oniice))*
+- [`346f456`](https://github.com/myerscode/utilities-web/commit/346f4568be050938ff041a9d70eda86258ae245f) - **uri**: add URL manipulation methods *(commit by [@oniice](https://github.com/oniice))*
+- [`15af4da`](https://github.com/myerscode/utilities-web/commit/15af4da88156c1a283e0e3492cae7a9f8a275099) - **response-util**: add head and isAlive *(commit by [@oniice](https://github.com/oniice))*
+- [`f554be5`](https://github.com/myerscode/utilities-web/commit/f554be52cad8b17967f25d03b0204db1f8cb0d5b) - **utility**: add make, response, isAlive *(commit by [@oniice](https://github.com/oniice))*
+- [`b97e063`](https://github.com/myerscode/utilities-web/commit/b97e0632707ff37ad6b2a5ee431762506ed1f014) - **dom**: add convenience methods *(commit by [@oniice](https://github.com/oniice))*
+- [`cef1627`](https://github.com/myerscode/utilities-web/commit/cef16279a4370a784d5904737aa9c7998ca73af1) - **ci**: add shared dependabot auto-merge *(PR [#9](https://github.com/myerscode/utilities-web/pull/9) by [@oniice](https://github.com/oniice))*
+
+### Bug Fixes
+- [`ca6c075`](https://github.com/myerscode/utilities-web/commit/ca6c0757171efd6ff9241df153d23bdda89450f4) - **uri**: anchor scheme detection regex *(commit by [@oniice](https://github.com/oniice))*
+- [`8ef18df`](https://github.com/myerscode/utilities-web/commit/8ef18df1b7615221c47e0ad61a096ba64381a75a) - **ping**: fix IPv6 detection and add features *(commit by [@oniice](https://github.com/oniice))*
+- [`06f2c0b`](https://github.com/myerscode/utilities-web/commit/06f2c0bed12ecf9babcdeffdbb55ef4783fa08b0) - **content**: preserve HTTP status on 4xx *(commit by [@oniice](https://github.com/oniice))*
+- [`345cc07`](https://github.com/myerscode/utilities-web/commit/345cc07548a53fac5364309d4fee2c4715e0ab0a) - **ci**: install required extensions + isolate flaky network ping test *(PR [#12](https://github.com/myerscode/utilities-web/pull/12) by [@oniice](https://github.com/oniice))*
+
+### Refactors
+- [`274c5db`](https://github.com/myerscode/utilities-web/commit/274c5db11fd452247991f1318f0244487e5af296) - **exceptions**: add base exception class *(commit by [@oniice](https://github.com/oniice))*
+
+
 ## [2026.0.0] - 2026-04-01
 ### Bug Fixes
 - [`df2cd98`](https://github.com/myerscode/utilities-web/commit/df2cd988e922d2f84d0943ab864dd79e03a1214e) - **ping**: commands where miss configured *(commit by [@oniice](https://github.com/oniice))*
@@ -38,3 +58,4 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - [`8e00d3f`](https://github.com/myerscode/utilities-web/commit/8e00d3f6da9e9a906b8f831e21221d365724f023) test: fixed failing test for exception checking
 - [`bcab932`](https://github.com/myerscode/utilities-web/commit/bcab932affd465d59d316852a0ed51ee980c263c) chore: removed reference to url utility
 [2026.0.0]: https://github.com/myerscode/utilities-web/compare/2025.0.0...2026.0.0
+[2026.0.1]: https://github.com/myerscode/utilities-web/compare/2026.0.0...2026.0.1
