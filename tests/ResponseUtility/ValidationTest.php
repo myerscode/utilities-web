@@ -11,18 +11,21 @@ use Tests\BaseResponseSuite;
 
 final class ValidationTest extends BaseResponseSuite
 {
+    public function testConstructorRejectsMalformedUrl(): void
+    {
+        // league/uri < 7.10 throws SyntaxError on spaces; 7.10+ percent-encodes the host and checkUrl() throws InvalidUrlException.
+        try {
+            new ResponseUtility('https://not a valid url');
+            $this->fail('Expected a malformed URL to be rejected');
+        } catch (SyntaxError|InvalidUrlException) {
+            $this->addToAssertionCount(1);
+        }
+    }
     public function testConstructorThrowsInvalidUrlForUnderscoreHost(): void
     {
         $this->expectException(InvalidUrlException::class);
 
         new ResponseUtility('foo_bar');
-    }
-
-    public function testConstructorThrowsSyntaxErrorForMalformedUrl(): void
-    {
-        $this->expectException(SyntaxError::class);
-
-        new ResponseUtility('https://not a valid url');
     }
 
     public function testFromCurlThrowsInvalidUrlException(): void
