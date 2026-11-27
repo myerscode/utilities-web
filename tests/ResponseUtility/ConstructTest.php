@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\ResponseUtility;
 
-use League\Uri\Exceptions\SyntaxError;
+use Myerscode\Utilities\Web\Exceptions\EmptyUrlException;
+use Myerscode\Utilities\Web\Exceptions\InvalidUrlException;
 use Myerscode\Utilities\Web\UriUtility;
 use Tests\BaseResponseSuite;
 
@@ -41,9 +42,16 @@ final class ConstructTest extends BaseResponseSuite
 
     public function testEmptyUrlThrowsException(): void
     {
-        $this->expectException(SyntaxError::class);
+        $this->expectException(EmptyUrlException::class);
 
         $this->utility('');
+    }
+
+    public function testMalformedUrlThrowsInvalidUrlException(): void
+    {
+        $this->expectException(InvalidUrlException::class);
+
+        $this->utility('https://rupert:gerald@[arthur');
     }
 
     public function testSetFollowRedirects(): void
@@ -72,5 +80,12 @@ final class ConstructTest extends BaseResponseSuite
         $utility = $this->utility('https://example.com');
 
         $this->assertSame($utility->value(), $utility->uri());
+    }
+
+    public function testWhitespaceOnlyUrlThrowsEmptyUrlException(): void
+    {
+        $this->expectException(EmptyUrlException::class);
+
+        $this->utility('   ');
     }
 }

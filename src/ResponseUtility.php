@@ -3,6 +3,7 @@
 namespace Myerscode\Utilities\Web;
 
 use Curl\Curl;
+use League\Uri\Contracts\UriException;
 use League\Uri\Http;
 use League\Uri\Uri;
 use Myerscode\Utilities\Web\Data\ResponseFrom;
@@ -385,12 +386,20 @@ class ResponseUtility
     {
         $trimmed = trim($uri instanceof UriUtility ? $uri->value() : $uri);
 
+        if ($trimmed === '') {
+            throw new EmptyUrlException();
+        }
+
         // check if a scheme is present at the start, if not we need to give it one
         if (!preg_match('#^https?://#i', $trimmed)) {
             $trimmed = self::DEFAULT_SCHEME . $trimmed;
         }
 
-        $this->http = Http::new($trimmed);
+        try {
+            $this->http = Http::new($trimmed);
+        } catch (UriException $exception) {
+            throw new InvalidUrlException($exception->getMessage(), 0, $exception);
+        }
 
         $this->checkUrl();
     }
