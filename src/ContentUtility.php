@@ -8,6 +8,7 @@ use Myerscode\Utilities\Web\Exceptions\FiveHundredResponseException;
 use Myerscode\Utilities\Web\Exceptions\FourHundredResponseException;
 use Myerscode\Utilities\Web\Exceptions\MaxRedirectsReachedException;
 use Myerscode\Utilities\Web\Exceptions\NetworkErrorException;
+use Myerscode\Utilities\Web\Exceptions\ResponseTooLargeException;
 use Myerscode\Utilities\Web\Resource\Dom;
 use Myerscode\Utilities\Web\Resource\Response;
 use Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface;
@@ -36,6 +37,11 @@ class ContentUtility
      * Allow requests to loopback, private, link-local and reserved addresses
      */
     private bool $allowPrivateNetworks = false;
+
+    /**
+     * Maximum response body size in bytes, null for unlimited
+     */
+    private ?int $maxBytes = null;
 
     /**
      * The url to get content from
@@ -138,16 +144,12 @@ class ContentUtility
      * @throws MaxRedirectsReachedException
      * @throws NetworkErrorException
      * @throws FiveHundredResponseException
+     * @throws ResponseTooLargeException
      */
     public function post(array $data = []): Response
     {
         try {
-            $options = ['timeout' => $this->timeout];
-
-            if ($this->headers !== []) {
-                $options['headers'] = $this->headers;
-            }
-
+            $options = $this->requestOptions();
             $options['body'] = $data;
 
             $this->guard();
@@ -156,6 +158,11 @@ class ContentUtility
 
             return new Response($response->getStatusCode(), $response->getContent(), $response->getHeaders());
         } catch (TransportExceptionInterface $e) {
+            // the client wraps whatever on_progress throws
+            if ($e->getPrevious() instanceof ResponseTooLargeException) {
+                throw $e->getPrevious();
+            }
+
             throw new NetworkErrorException($e->getMessage(), $e->getCode(), $e);
         } catch (ClientExceptionInterface $e) {
             throw new FourHundredResponseException($e->getMessage(), $e->getResponse()->getStatusCode(), $e);
@@ -171,6 +178,7 @@ class ContentUtility
      * @throws MaxRedirectsReachedException
      * @throws NetworkErrorException
      * @throws FiveHundredResponseException
+     * @throws ResponseTooLargeException
      */
     public function response(): Response
     {
@@ -179,6 +187,11 @@ class ContentUtility
 
             return new Response($response->getStatusCode(), $response->getContent(), $response->getHeaders());
         } catch (TransportExceptionInterface $e) {
+            // the client wraps whatever on_progress throws
+            if ($e->getPrevious() instanceof ResponseTooLargeException) {
+                throw $e->getPrevious();
+            }
+
             throw new NetworkErrorException($e->getMessage(), $e->getCode(), $e);
         } catch (ClientExceptionInterface $e) {
             throw new FourHundredResponseException($e->getMessage(), $e->getResponse()->getStatusCode(), $e);
@@ -233,11 +246,47 @@ class ContentUtility
     }
 
     /**
+     * Set the maximum response body size in bytes, the request is aborted once it is exceeded.
+     *
+     * Null (the default) means unlimited.
+     */
+    public function withMaxBytes(?int $bytes): self
+    {
+        $this->maxBytes = $bytes;
+
+        return $this;
+    }
+
+    /**
      * Create a client to send a http request
      */
     protected function client(): HttpClientInterface
     {
         return ClientUtility::client($this->allowPrivateNetworks);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function requestOptions(): array
+    {
+        $options = ['timeout' => $this->timeout];
+
+        if ($this->headers !== []) {
+            $options['headers'] = $this->headers;
+        }
+
+        if ($this->maxBytes !== null) {
+            $max = $this->maxBytes;
+
+            $options['on_progress'] = static function (int $downloaded, int $total) use ($max): void {
+                if ($downloaded > $max || $total > $max) {
+                    throw new ResponseTooLargeException('Response is larger than ' . $max . ' bytes');
+                }
+            };
+        }
+
+        return $options;
     }
 
     /**
@@ -254,16 +303,10 @@ class ContentUtility
     {
         $this->guard();
 
-        $options = ['timeout' => $this->timeout];
-
-        if ($this->headers !== []) {
-            $options['headers'] = $this->headers;
-        }
-
         return $this->client()->request(
             'GET',
             $this->uriUtility->url(),
-            $options,
+            $this->requestOptions(),
         );
     }
 }
