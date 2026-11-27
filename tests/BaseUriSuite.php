@@ -10,6 +10,6 @@ abstract class BaseUriSuite extends BaseSuite
 {
     public function utility(string $url): UriUtility
     {
-        return new UriUtility($url);
+        return (new UriUtility($url))->allowPrivateNetworks();
     }
 }

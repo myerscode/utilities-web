@@ -2,6 +2,7 @@
 
 namespace Myerscode\Utilities\Web;
 
+use Myerscode\Utilities\Web\Exceptions\BlockedHostException;
 use Myerscode\Utilities\Web\Exceptions\ContentNotFoundException;
 use Myerscode\Utilities\Web\Exceptions\FiveHundredResponseException;
 use Myerscode\Utilities\Web\Exceptions\FourHundredResponseException;
@@ -30,6 +31,12 @@ class ContentUtility
      * Request timeout in seconds
      */
     private int $timeout = 30;
+
+    /**
+     * Allow requests to loopback, private, link-local and reserved addresses
+     */
+    private bool $allowPrivateNetworks = false;
+
     /**
      * The url to get content from
      */
@@ -38,6 +45,18 @@ class ContentUtility
     public function __construct(public readonly string $url)
     {
         $this->uriUtility = new UriUtility($url);
+    }
+
+    /**
+     * Allow (or block again) requests to loopback, private, link-local and reserved addresses.
+     *
+     * Blocked by default to prevent server side request forgery.
+     */
+    public function allowPrivateNetworks(bool $allow = true): self
+    {
+        $this->allowPrivateNetworks = $allow;
+
+        return $this;
     }
 
     /**
@@ -131,6 +150,8 @@ class ContentUtility
 
             $options['body'] = $data;
 
+            $this->guard();
+
             $response = $this->client()->request('POST', $this->uriUtility->url(), $options);
 
             return new Response($response->getStatusCode(), $response->getContent(), $response->getHeaders());
@@ -216,11 +237,23 @@ class ContentUtility
      */
     protected function client(): HttpClientInterface
     {
-        return ClientUtility::client();
+        return ClientUtility::client($this->allowPrivateNetworks);
+    }
+
+    /**
+     * @throws BlockedHostException
+     */
+    private function guard(): void
+    {
+        if (!$this->allowPrivateNetworks) {
+            HostGuard::assertSafe($this->uriUtility->url());
+        }
     }
 
     protected function clientResponse(): ResponseInterface
     {
+        $this->guard();
+
         $options = ['timeout' => $this->timeout];
 
         if ($this->headers !== []) {

@@ -4,6 +4,8 @@ namespace Myerscode\Utilities\Web;
 
 class Utility
 {
+    private bool $allowPrivateNetworks = false;
+
     public function __construct(private readonly string $url)
     {
     }
@@ -17,11 +19,22 @@ class Utility
     }
 
     /**
+     * Allow (or block again) requests to loopback, private, link-local and reserved addresses
+     * for the utilities created from here. Blocked by default.
+     */
+    public function allowPrivateNetworks(bool $allow = true): self
+    {
+        $this->allowPrivateNetworks = $allow;
+
+        return $this;
+    }
+
+    /**
      * Get the content utility
      */
     public function content(): ContentUtility
     {
-        return new ContentUtility($this->url);
+        return (new ContentUtility($this->url))->allowPrivateNetworks($this->allowPrivateNetworks);
     }
 
     /**
@@ -45,7 +58,7 @@ class Utility
      */
     public function response(): ResponseUtility
     {
-        return new ResponseUtility($this->url);
+        return (new ResponseUtility($this->url))->allowPrivateNetworks($this->allowPrivateNetworks);
     }
 
     /**
@@ -53,6 +66,6 @@ class Utility
      */
     public function url(): UriUtility
     {
-        return new UriUtility($this->url);
+        return (new UriUtility($this->url))->allowPrivateNetworks($this->allowPrivateNetworks);
     }
 }

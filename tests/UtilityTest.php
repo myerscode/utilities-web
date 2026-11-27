@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests;
 
 use Myerscode\Utilities\Web\ContentUtility;
+use Myerscode\Utilities\Web\Exceptions\BlockedHostException;
 use Myerscode\Utilities\Web\PingUtility;
 use Myerscode\Utilities\Web\ResponseUtility;
 use Myerscode\Utilities\Web\UriUtility;
@@ -23,7 +24,7 @@ final class UtilityTest extends BaseSuite
     {
         self::$server->setResponseOfPath('/utility-dead', new TestResponse('', [], 500));
 
-        $utility = new Utility(self::serverUrl('/utility-dead'));
+        $utility = (new Utility(self::serverUrl('/utility-dead')))->allowPrivateNetworks();
 
         $this->assertFalse($utility->isAlive());
     }
@@ -32,7 +33,7 @@ final class UtilityTest extends BaseSuite
     {
         self::$server->setResponseOfPath('/utility-alive', new TestResponse('', [], 200));
 
-        $utility = new Utility(self::serverUrl('/utility-alive'));
+        $utility = (new Utility(self::serverUrl('/utility-alive')))->allowPrivateNetworks();
 
         $this->assertTrue($utility->isAlive());
     }
@@ -63,5 +64,22 @@ final class UtilityTest extends BaseSuite
         $utility = new Utility('https://example.com');
 
         $this->assertInstanceOf(UriUtility::class, $utility->url());
+    }
+
+    public function testPrivateNetworksAreBlockedByDefault(): void
+    {
+        $this->expectException(BlockedHostException::class);
+
+        (new Utility(self::serverUrl('/blocked')))->content()->content();
+    }
+
+    public function testAllowPrivateNetworksPassesThroughToUtilities(): void
+    {
+        self::$server->setResponseOfPath('/utility-allowed', new TestResponse('Rupert', [], 200));
+
+        $utility = (new Utility(self::serverUrl('/utility-allowed')))->allowPrivateNetworks();
+
+        $this->assertSame('Rupert', $utility->content()->content());
+        $this->assertTrue($utility->url()->check()->isSuccessful());
     }
 }

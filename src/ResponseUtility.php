@@ -4,15 +4,18 @@ namespace Myerscode\Utilities\Web;
 
 use Curl\Curl;
 use League\Uri\Http;
+use League\Uri\Uri;
 use Myerscode\Utilities\Web\Data\ResponseFrom;
 use Myerscode\Utilities\Web\Exceptions\EmptyUrlException;
 use Myerscode\Utilities\Web\Exceptions\InvalidUrlException;
+use Myerscode\Utilities\Web\Exceptions\MaxRedirectsReachedException;
 use Myerscode\Utilities\Web\Exceptions\UnsupportedCheckMethodException;
 use Myerscode\Utilities\Web\Resource\Response;
 use Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\ServerExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
 use Exception;
+use Throwable;
 
 class ResponseUtility
 {
@@ -24,6 +27,11 @@ class ResponseUtility
      * Should follow redirects
      */
     private bool $followRedirects = false;
+
+    /**
+     * Allow requests to loopback, private, link-local and reserved addresses
+     */
+    private bool $allowPrivateNetworks = false;
 
     private ?Http $http = null;
 
@@ -63,73 +71,123 @@ class ResponseUtility
     }
 
     /**
+     * Allow (or block again) requests to loopback, private, link-local and reserved addresses.
+     *
+     * Blocked by default to prevent server side request forgery.
+     */
+    public function allowPrivateNetworks(bool $allow = true): self
+    {
+        $this->allowPrivateNetworks = $allow;
+
+        return $this;
+    }
+
+    /**
      * Check the url exists using curl
      *
      * @throws EmptyUrlException
      * @throws InvalidUrlException
+     * @throws MaxRedirectsReachedException
      */
     public function fromCurl(): Response
     {
         $this->checkUrl();
-        $curl = new Curl();
-        $curl->setUrl($this->value());
 
-        $curl->setOpts([
-            CURLOPT_HEADER => true,
-            CURLOPT_NOBODY => true,
-            CURLOPT_RETURNTRANSFER => true,
-        ]);
+        $url = $this->value();
 
-        if ($this->followRedirects()) {
-            $curl->setFollowLocation();
-            $curl->setMaximumRedirects($this->maxRedirects);
-        } else {
+        // redirects are followed here, not by curl, so every Location can be vetted
+        for ($hop = 0; ; $hop++) {
+            $ips = $this->allowPrivateNetworks ? [] : HostGuard::assertSafe($url);
+
+            $curl = new Curl();
+            $curl->setUrl($url);
+
+            $curl->setOpts([
+                CURLOPT_HEADER => true,
+                CURLOPT_NOBODY => true,
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_PROTOCOLS => CURLPROTO_HTTP | CURLPROTO_HTTPS,
+                CURLOPT_REDIR_PROTOCOLS => CURLPROTO_HTTP | CURLPROTO_HTTPS,
+            ]);
+
+            $host = parse_url($url, PHP_URL_HOST);
+
+            // pin the vetted addresses so the connection cannot be redirected by a second DNS lookup
+            if ($ips !== [] && !filter_var(trim($host, '[]'), FILTER_VALIDATE_IP)) {
+                $port = parse_url($url, PHP_URL_PORT) ?? (strtolower((string)parse_url($url, PHP_URL_SCHEME)) === 'https' ? 443 : 80);
+                $addresses = implode(',', array_map(static fn(string $ip): string => str_contains($ip, ':') ? '[' . $ip . ']' : $ip, $ips));
+                $curl->setOpt(CURLOPT_RESOLVE, [sprintf('%s:%d:%s', $host, $port, $addresses)]);
+            }
+
             $curl->setFollowLocation(false);
+            $curl->setTimeout($this->timeout());
+            $curl->setConnectTimeout($this->timeout());
+            $curl->exec();
+
+            $code = (int)$curl->getHttpStatusCode();
+            $location = $curl->responseHeaders['Location'] ?? null;
+
+            if (!$this->followRedirects() || !is_string($location) || !$this->isRedirect($code)) {
+                return new Response($code);
+            }
+
+            $url = $this->nextUrl($url, $location, $hop);
         }
-
-        $curl->setTimeout($this->timeout());
-        $curl->setConnectTimeout($this->timeout());
-        $curl->exec();
-
-        return new Response($curl->getHttpStatusCode());
     }
 
     /**
      * Check the url exists using headers
+     *
+     * @throws InvalidUrlException
+     * @throws MaxRedirectsReachedException
      */
     public function fromHeaders(): Response
     {
-        $streamContextDefaults = stream_context_get_options(stream_context_get_default());
+        $url = $this->value();
 
-        stream_context_set_default(
-            [
+        // when guarded, redirects are followed here so every Location can be vetted
+        $manual = !$this->allowPrivateNetworks;
+
+        for ($hop = 0; ; $hop++) {
+            if ($manual) {
+                HostGuard::assertSafe($url);
+            }
+
+            $context = stream_context_create([
                 'http' => [
                     'timeout' => $this->timeout(),
+                    'follow_location' => $manual ? 0 : 1,
                 ],
-            ],
-        );
+            ]);
 
-        $headers = @get_headers($this->value());
+            $headers = @get_headers($url, false, $context);
 
-        stream_context_set_default($streamContextDefaults);
+            $code = 404;
+            $location = null;
 
-        $code = 404;
+            if ($headers) {
+                if ($this->followRedirects() && !$manual) {
+                    $headers = array_reverse($headers);
+                }
 
-        if ($headers) {
-            if ($this->followRedirects()) {
-                $headers = array_reverse($headers);
+                if (preg_match('#^HTTP/\S+\s+([1-9]\d\d)\s+.*#', (string)$headers[0], $matches)) {
+                    $code = (int)$matches[1];
+                }
+
+                foreach ($headers as $header) {
+                    if (preg_match('#^Location:\s*(\S+)#i', (string)$header, $matches)) {
+                        $location = $matches[1];
+                    }
+                }
             }
 
-            $header = $headers[0];
-
-            if (preg_match('#^HTTP/\S+\s+([1-9]\d\d)\s+.*#', (string)$header, $matches)) {
-                $code = $matches[1];
+            if (!$manual || !$this->followRedirects() || $location === null || !$this->isRedirect($code)) {
+                return new Response($code);
             }
+
+            $url = $this->nextUrl($url, $location, $hop);
         }
-
-        return new Response((int)$code);
     }
-
 
     /**
      * Check the url exists using a http client
@@ -142,7 +200,11 @@ class ResponseUtility
     {
         $this->checkUrl();
 
-        $client = ClientUtility::client();
+        if (!$this->allowPrivateNetworks) {
+            HostGuard::assertSafe($this->value());
+        }
+
+        $client = ClientUtility::client($this->allowPrivateNetworks);
 
         try {
             $response = $client->request('GET', $this->value());
@@ -231,6 +293,36 @@ class ResponseUtility
     {
         // only brackets are unescaped; decoding anything else would change the URL's meaning (%2f, %26, %0d%0a, %00)
         return str_ireplace(['%5B', '%5D'], ['[', ']'], (string)$this->http);
+    }
+
+    /**
+     * Resolve the next hop of a redirect, enforcing the redirect limit and http(s) only
+     *
+     * @throws InvalidUrlException
+     * @throws MaxRedirectsReachedException
+     */
+    private function nextUrl(string $current, string $location, int $hop): string
+    {
+        if ($hop >= $this->maxRedirects) {
+            throw new MaxRedirectsReachedException();
+        }
+
+        try {
+            $next = (string)Uri::new($current)->resolve($location);
+        } catch (Throwable) {
+            throw new InvalidUrlException();
+        }
+
+        if (!preg_match('#^https?://#i', $next)) {
+            throw new InvalidUrlException();
+        }
+
+        return $next;
+    }
+
+    private function isRedirect(int $code): bool
+    {
+        return in_array($code, [301, 302, 303, 307, 308], true);
     }
 
     /**

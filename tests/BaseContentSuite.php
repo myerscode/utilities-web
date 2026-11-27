@@ -10,6 +10,6 @@ abstract class BaseContentSuite extends BaseSuite
 {
     public function utility(string $url): ContentUtility
     {
-        return new ContentUtility($url);
+        return (new ContentUtility($url))->allowPrivateNetworks();
     }
 }

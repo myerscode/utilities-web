@@ -18,6 +18,11 @@ class UriUtility
      */
     private int $timeout = 10;
 
+    /**
+     * Allow checks against loopback, private, link-local and reserved addresses
+     */
+    private bool $allowPrivateNetworks = false;
+
 
     public function __construct(string $uri)
     {
@@ -43,11 +48,23 @@ class UriUtility
     }
 
     /**
+     * Allow (or block again) checks against loopback, private, link-local and reserved addresses.
+     *
+     * Blocked by default to prevent server side request forgery.
+     */
+    public function allowPrivateNetworks(bool $allow = true): self
+    {
+        $this->allowPrivateNetworks = $allow;
+
+        return $this;
+    }
+
+    /**
      * Check the response from the uri
      */
     public function check(ResponseFrom $responseFrom = ResponseFrom::CURL): Response
     {
-        $responseUtility = new ResponseUtility($this->value());
+        $responseUtility = (new ResponseUtility($this->value()))->allowPrivateNetworks($this->allowPrivateNetworks);
 
         return $responseUtility->check($responseFrom);
     }
