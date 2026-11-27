@@ -86,6 +86,7 @@ class ResponseUtility
      * @throws EmptyUrlException
      * @throws InvalidUrlException
      * @throws MaxRedirectsReachedException
+     * @throws NetworkErrorException
      */
     public function fromCurl(): Response
     {
@@ -96,6 +97,11 @@ class ResponseUtility
         // redirects are followed here, not by curl, so every Location can be vetted
         for ($hop = 0; ; $hop++) {
             $ips = $this->allowPrivateNetworks ? [] : HostGuard::assertSafe($url);
+
+            // an unvetted address could not be pinned, so curl must not resolve it itself
+            if (!$this->allowPrivateNetworks && $ips === []) {
+                throw new NetworkErrorException('Could not resolve ' . $url);
+            }
 
             $curl = new Curl();
             $curl->setUrl($url);
@@ -121,6 +127,10 @@ class ResponseUtility
             $curl->setTimeout($this->timeout());
             $curl->setConnectTimeout($this->timeout());
             $curl->exec();
+
+            if ($curl->curlError) {
+                throw new NetworkErrorException((string)$curl->curlErrorMessage, (int)$curl->curlErrorCode);
+            }
 
             $code = (int)$curl->getHttpStatusCode();
             $location = $curl->responseHeaders['Location'] ?? null;
