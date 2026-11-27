@@ -33,34 +33,6 @@ final class HostGuardTest extends BaseSuite
         yield 'decimal ip' => ['http://2130706433/'];
     }
 
-    #[DataProvider('blockedProvider')]
-    public function testGuardBlocksHost(string $url): void
-    {
-        $this->expectException(BlockedHostException::class);
-
-        HostGuard::assertSafe($url);
-    }
-
-    #[DataProvider('blockedProvider')]
-    public function testResponseUtilityBlocksByDefault(string $url): void
-    {
-        $this->expectException(InvalidUrlException::class);
-
-        (new ResponseUtility($url))->fromCurl();
-    }
-
-    public function testEveryResponseMethodBlocksByDefault(): void
-    {
-        foreach (['fromCurl', 'fromHeaders', 'fromHttpClient'] as $method) {
-            try {
-                (new ResponseUtility(self::serverUrl('/blocked')))->$method();
-                $this->fail($method . ' did not block a loopback host');
-            } catch (BlockedHostException) {
-                $this->addToAssertionCount(1);
-            }
-        }
-    }
-
     public function testContentUtilityBlocksByDefault(): void
     {
         $this->expectException(BlockedHostException::class);
@@ -75,11 +47,31 @@ final class HostGuardTest extends BaseSuite
         (new ContentUtility(self::serverUrl('/blocked')))->post(['name' => 'Gerald']);
     }
 
-    public function testUriUtilityCheckBlocksByDefault(): void
+    public function testEveryResponseMethodBlocksByDefault(): void
+    {
+        foreach (['fromCurl', 'fromHeaders', 'fromHttpClient'] as $method) {
+            try {
+                (new ResponseUtility(self::serverUrl('/blocked')))->$method();
+                $this->fail($method . ' did not block a loopback host');
+            } catch (BlockedHostException) {
+                $this->addToAssertionCount(1);
+            }
+        }
+    }
+
+    #[DataProvider('blockedProvider')]
+    public function testGuardBlocksHost(string $url): void
     {
         $this->expectException(BlockedHostException::class);
 
-        (new UriUtility(self::serverUrl('/blocked')))->check();
+        HostGuard::assertSafe($url);
+    }
+
+    public function testNonHttpSchemeIsBlocked(): void
+    {
+        $this->expectException(BlockedHostException::class);
+
+        HostGuard::assertSafe('file:///etc/passwd');
     }
 
     public function testOptOutAllowsPrivateNetworks(): void
@@ -104,10 +96,18 @@ final class HostGuardTest extends BaseSuite
         $this->assertSame(['2606:2800:220:1:248:1893:25c8:1946'], HostGuard::assertSafe('https://[2606:2800:220:1:248:1893:25c8:1946]/'));
     }
 
-    public function testNonHttpSchemeIsBlocked(): void
+    #[DataProvider('blockedProvider')]
+    public function testResponseUtilityBlocksByDefault(string $url): void
+    {
+        $this->expectException(InvalidUrlException::class);
+
+        (new ResponseUtility($url))->fromCurl();
+    }
+
+    public function testUriUtilityCheckBlocksByDefault(): void
     {
         $this->expectException(BlockedHostException::class);
 
-        HostGuard::assertSafe('file:///etc/passwd');
+        (new UriUtility(self::serverUrl('/blocked')))->check();
     }
 }

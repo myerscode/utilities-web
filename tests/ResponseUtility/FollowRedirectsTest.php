@@ -11,6 +11,40 @@ use Tests\TestResponse;
 
 final class FollowRedirectsTest extends BaseResponseSuite
 {
+    public function testCurlFollowsRedirectsToFinalResponse(): void
+    {
+        self::$server->setResponseOfPath('/hop-start', new TestResponse('', ['Location' => '/hop-end'], 302));
+        self::$server->setResponseOfPath('/hop-end', new TestResponse('', [], 200));
+
+        $utility = $this->utility(self::serverUrl('/hop-start'))->setFollowRedirects(true);
+
+        $this->assertSame(200, $utility->fromCurl()->code());
+    }
+
+    public function testCurlRefusesRedirectToOtherProtocol(): void
+    {
+        self::$server->setResponseOfPath('/to-ftp', new TestResponse('', ['Location' => 'ftp://example.com/file'], 302));
+
+        $this->expectException(InvalidUrlException::class);
+
+        $this->utility(self::serverUrl('/to-ftp'))->setFollowRedirects(true)->fromCurl();
+    }
+
+    public function testCurlReportsRedirectWhenNotFollowing(): void
+    {
+        self::$server->setResponseOfPath('/stay-start', new TestResponse('', ['Location' => '/stay-end'], 302));
+
+        $this->assertSame(302, $this->utility(self::serverUrl('/stay-start'))->fromCurl()->code());
+    }
+
+    public function testCurlStopsAtMaxRedirects(): void
+    {
+        self::$server->setResponseOfPath('/loop', new TestResponse('', ['Location' => '/loop'], 302));
+
+        $this->expectException(MaxRedirectsReachedException::class);
+
+        $this->utility(self::serverUrl('/loop'))->setFollowRedirects(true)->setMaxRedirects(2)->fromCurl();
+    }
     public function testFromCurlWithFollowRedirects(): void
     {
         self::$server->setResponseOfPath('/redirect-curl', new TestResponse('', [], 200));
@@ -45,41 +79,6 @@ final class FollowRedirectsTest extends BaseResponseSuite
         $response = $utility->fromHeaders();
 
         $this->assertIsInt($response->code());
-    }
-
-    public function testCurlFollowsRedirectsToFinalResponse(): void
-    {
-        self::$server->setResponseOfPath('/hop-start', new TestResponse('', ['Location' => '/hop-end'], 302));
-        self::$server->setResponseOfPath('/hop-end', new TestResponse('', [], 200));
-
-        $utility = $this->utility(self::serverUrl('/hop-start'))->setFollowRedirects(true);
-
-        $this->assertSame(200, $utility->fromCurl()->code());
-    }
-
-    public function testCurlReportsRedirectWhenNotFollowing(): void
-    {
-        self::$server->setResponseOfPath('/stay-start', new TestResponse('', ['Location' => '/stay-end'], 302));
-
-        $this->assertSame(302, $this->utility(self::serverUrl('/stay-start'))->fromCurl()->code());
-    }
-
-    public function testCurlStopsAtMaxRedirects(): void
-    {
-        self::$server->setResponseOfPath('/loop', new TestResponse('', ['Location' => '/loop'], 302));
-
-        $this->expectException(MaxRedirectsReachedException::class);
-
-        $this->utility(self::serverUrl('/loop'))->setFollowRedirects(true)->setMaxRedirects(2)->fromCurl();
-    }
-
-    public function testCurlRefusesRedirectToOtherProtocol(): void
-    {
-        self::$server->setResponseOfPath('/to-ftp', new TestResponse('', ['Location' => 'ftp://example.com/file'], 302));
-
-        $this->expectException(InvalidUrlException::class);
-
-        $this->utility(self::serverUrl('/to-ftp'))->setFollowRedirects(true)->fromCurl();
     }
 
     public function testHeadersFollowRedirectsToFinalResponse(): void

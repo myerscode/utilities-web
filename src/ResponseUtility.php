@@ -22,14 +22,14 @@ class ResponseUtility
     protected int $maxRedirects = 10;
 
     /**
-     * Should follow redirects
-     */
-    private bool $followRedirects = false;
-
-    /**
      * Allow requests to loopback, private, link-local and reserved addresses
      */
     private bool $allowPrivateNetworks = false;
+
+    /**
+     * Should follow redirects
+     */
+    private bool $followRedirects = false;
 
     private ?Http $http = null;
 
@@ -41,6 +41,18 @@ class ResponseUtility
     public function __construct(string|UriUtility $uri)
     {
         $this->setUrl($uri);
+    }
+
+    /**
+     * Allow (or block again) requests to loopback, private, link-local and reserved addresses.
+     *
+     * Blocked by default to prevent server side request forgery.
+     */
+    public function allowPrivateNetworks(bool $allow = true): self
+    {
+        $this->allowPrivateNetworks = $allow;
+
+        return $this;
     }
 
     /**
@@ -66,18 +78,6 @@ class ResponseUtility
     public function followRedirects(): bool
     {
         return $this->followRedirects;
-    }
-
-    /**
-     * Allow (or block again) requests to loopback, private, link-local and reserved addresses.
-     *
-     * Blocked by default to prevent server side request forgery.
-     */
-    public function allowPrivateNetworks(bool $allow = true): self
-    {
-        $this->allowPrivateNetworks = $allow;
-
-        return $this;
     }
 
     /**
@@ -119,7 +119,7 @@ class ResponseUtility
             // pin the vetted addresses so the connection cannot be redirected by a second DNS lookup
             if ($ips !== [] && !filter_var(trim($host, '[]'), FILTER_VALIDATE_IP)) {
                 $port = parse_url($url, PHP_URL_PORT) ?? (strtolower((string)parse_url($url, PHP_URL_SCHEME)) === 'https' ? 443 : 80);
-                $addresses = implode(',', array_map(static fn(string $ip): string => str_contains($ip, ':') ? '[' . $ip . ']' : $ip, $ips));
+                $addresses = implode(',', array_map(static fn (string $ip): string => str_contains($ip, ':') ? '[' . $ip . ']' : $ip, $ips));
                 $curl->setOpt(CURLOPT_RESOLVE, [sprintf('%s:%d:%s', $host, $port, $addresses)]);
             }
 
@@ -298,6 +298,28 @@ class ResponseUtility
     }
 
     /**
+     * Check the URL that will be used
+     *
+     * @throws EmptyUrlException
+     * @throws InvalidUrlException
+     */
+    protected function checkUrl(): void
+    {
+        if (in_array($this->value(), ['', '0'], true)) {
+            throw new EmptyUrlException();
+        }
+
+        if (filter_var($this->value(), FILTER_VALIDATE_URL) === false) {
+            throw new InvalidUrlException();
+        }
+    }
+
+    private function isRedirect(int $code): bool
+    {
+        return in_array($code, [301, 302, 303, 307, 308], true);
+    }
+
+    /**
      * Resolve the next hop of a redirect, enforcing the redirect limit and http(s) only
      *
      * @throws InvalidUrlException
@@ -320,28 +342,6 @@ class ResponseUtility
         }
 
         return $next;
-    }
-
-    private function isRedirect(int $code): bool
-    {
-        return in_array($code, [301, 302, 303, 307, 308], true);
-    }
-
-    /**
-     * Check the URL that will be used
-     *
-     * @throws EmptyUrlException
-     * @throws InvalidUrlException
-     */
-    protected function checkUrl(): void
-    {
-        if (in_array($this->value(), ['', '0'], true)) {
-            throw new EmptyUrlException();
-        }
-
-        if (filter_var($this->value(), FILTER_VALIDATE_URL) === false) {
-            throw new InvalidUrlException();
-        }
     }
 
     /**

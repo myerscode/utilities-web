@@ -22,6 +22,10 @@ use JsonException;
 class ContentUtility
 {
     /**
+     * Allow requests to loopback, private, link-local and reserved addresses
+     */
+    private bool $allowPrivateNetworks = false;
+    /**
      * Custom request headers
      *
      * @var array<string, string>
@@ -29,19 +33,14 @@ class ContentUtility
     private array $headers = [];
 
     /**
-     * Request timeout in seconds
-     */
-    private int $timeout = 30;
-
-    /**
-     * Allow requests to loopback, private, link-local and reserved addresses
-     */
-    private bool $allowPrivateNetworks = false;
-
-    /**
      * Maximum response body size in bytes, null for unlimited
      */
     private ?int $maxBytes = null;
+
+    /**
+     * Request timeout in seconds
+     */
+    private int $timeout = 30;
 
     /**
      * The url to get content from
@@ -236,16 +235,6 @@ class ContentUtility
     }
 
     /**
-     * Set the request timeout in seconds
-     */
-    public function withTimeout(int $seconds): self
-    {
-        $this->timeout = $seconds;
-
-        return $this;
-    }
-
-    /**
      * Set the maximum response body size in bytes, the request is aborted once it is exceeded.
      *
      * Null (the default) means unlimited.
@@ -258,11 +247,42 @@ class ContentUtility
     }
 
     /**
+     * Set the request timeout in seconds
+     */
+    public function withTimeout(int $seconds): self
+    {
+        $this->timeout = $seconds;
+
+        return $this;
+    }
+
+    /**
      * Create a client to send a http request
      */
     protected function client(): HttpClientInterface
     {
         return ClientUtility::client($this->allowPrivateNetworks);
+    }
+
+    protected function clientResponse(): ResponseInterface
+    {
+        $this->guard();
+
+        return $this->client()->request(
+            'GET',
+            $this->uriUtility->url(),
+            $this->requestOptions(),
+        );
+    }
+
+    /**
+     * @throws BlockedHostException
+     */
+    private function guard(): void
+    {
+        if (!$this->allowPrivateNetworks) {
+            HostGuard::assertSafe($this->uriUtility->url());
+        }
     }
 
     /**
@@ -287,26 +307,5 @@ class ContentUtility
         }
 
         return $options;
-    }
-
-    /**
-     * @throws BlockedHostException
-     */
-    private function guard(): void
-    {
-        if (!$this->allowPrivateNetworks) {
-            HostGuard::assertSafe($this->uriUtility->url());
-        }
-    }
-
-    protected function clientResponse(): ResponseInterface
-    {
-        $this->guard();
-
-        return $this->client()->request(
-            'GET',
-            $this->uriUtility->url(),
-            $this->requestOptions(),
-        );
     }
 }

@@ -13,17 +13,17 @@ class UriUtility
 {
     public const DEFAULT_SCHEME = 'http://';
 
+    /**
+     * Allow checks against loopback, private, link-local and reserved addresses
+     */
+    private bool $allowPrivateNetworks = false;
+
     private Http $http;
 
     /**
      * How long to wait before timing out requests
      */
     private int $timeout = 10;
-
-    /**
-     * Allow checks against loopback, private, link-local and reserved addresses
-     */
-    private bool $allowPrivateNetworks = false;
 
 
     public function __construct(string $uri)

@@ -28,6 +28,17 @@ final class HttpExceptionTest extends BaseResponseSuite
         $this->assertSame(500, $response->code());
     }
 
+    public function testFromHttpClientReportsRedirectWhenNotFollowing(): void
+    {
+        self::$server->setResponseOfPath('/http-r-start', new TestResponse('', ['Location' => '/http-r-end'], 302));
+        self::$server->setResponseOfPath('/http-r-end', new TestResponse('', [], 200));
+
+        $utility = $this->utility(self::serverUrl('/http-r-start'));
+
+        $this->assertSame(302, $utility->fromHttpClient()->code());
+        $this->assertSame(200, $utility->setFollowRedirects(true)->fromHttpClient()->code());
+    }
+
     public function testFromHttpClientReturnsRealClientErrorCode(): void
     {
         self::$server->setResponseOfPath('/http-418', new TestResponse('', [], 418));
@@ -40,17 +51,6 @@ final class HttpExceptionTest extends BaseResponseSuite
         self::$server->setResponseOfPath('/http-503', new TestResponse('', [], 503));
 
         $this->assertSame(503, $this->utility(self::serverUrl('/http-503'))->fromHttpClient()->code());
-    }
-
-    public function testFromHttpClientReportsRedirectWhenNotFollowing(): void
-    {
-        self::$server->setResponseOfPath('/http-r-start', new TestResponse('', ['Location' => '/http-r-end'], 302));
-        self::$server->setResponseOfPath('/http-r-end', new TestResponse('', [], 200));
-
-        $utility = $this->utility(self::serverUrl('/http-r-start'));
-
-        $this->assertSame(302, $utility->fromHttpClient()->code());
-        $this->assertSame(200, $utility->setFollowRedirects(true)->fromHttpClient()->code());
     }
 
     public function testFromHttpClientThrowsNetworkErrorWhenUnreachable(): void
