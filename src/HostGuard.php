@@ -40,7 +40,15 @@ final class HostGuard
 
         $host = trim($parts['host'], '[]');
 
-        $ips = filter_var($host, FILTER_VALIDATE_IP) ? [$host] : self::resolve($host);
+        $numeric = self::numericIpv4($host);
+
+        if ($numeric !== null) {
+            $ips = [$numeric];
+        } elseif (filter_var($host, FILTER_VALIDATE_IP)) {
+            $ips = [$host];
+        } else {
+            $ips = self::resolve($host);
+        }
 
         foreach ($ips as $ip) {
             if (!self::isPublic($ip)) {
@@ -65,6 +73,55 @@ final class HostGuard
         }
 
         return !IpUtils::checkIp($ip, self::EXTRA_BLOCKED);
+    }
+
+    /**
+     * Parse the IPv4 shorthands curl and inet_aton accept (2130706433, 0x7f.1, 0177.0.0.1, 127.1)
+     * so the guard never depends on the OS resolver understanding them
+     */
+    private static function numericIpv4(string $host): ?string
+    {
+        if (!preg_match('/^(0x[0-9a-f]*|[0-9]+)(\.(0x[0-9a-f]*|[0-9]+)){0,3}$/i', $host)) {
+            return null;
+        }
+
+        $parts = [];
+
+        foreach (explode('.', $host) as $part) {
+            $value = match (true) {
+                str_starts_with(strtolower($part), '0x') => hexdec(substr($part, 2) ?: '0'),
+                strlen($part) > 1 && $part[0] === '0' => ctype_digit($part) && strspn($part, '01234567') === strlen($part) ? octdec($part) : null,
+                default => (int) $part,
+            };
+
+            if (!is_int($value)) {
+                return null;
+            }
+
+            $parts[] = $value;
+        }
+
+        // the last part fills the remaining bytes, like inet_aton
+        $last = array_pop($parts);
+        $limit = 256 ** (4 - count($parts));
+
+        foreach ($parts as $part) {
+            if ($part > 255) {
+                return null;
+            }
+        }
+
+        if ($last >= $limit) {
+            return null;
+        }
+
+        $number = $last;
+
+        foreach (array_reverse($parts) as $index => $part) {
+            $number += $part * 256 ** (3 - (count($parts) - 1 - $index));
+        }
+
+        return long2ip((int) $number);
     }
 
     /**

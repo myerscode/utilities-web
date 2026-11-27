@@ -31,6 +31,11 @@ final class HostGuardTest extends BaseSuite
         yield 'ipv4 mapped ipv6 hex' => ['http://[::ffff:7f00:1]/'];
         yield 'localhost' => ['http://localhost/'];
         yield 'decimal ip' => ['http://2130706433/'];
+        yield 'hex ip' => ['http://0x7f000001/'];
+        yield 'dotted hex ip' => ['http://0x7f.0.0.1/'];
+        yield 'octal ip' => ['http://0177.0.0.1/'];
+        yield 'short ip' => ['http://127.1/'];
+        yield 'short private ip' => ['http://10.1/'];
     }
 
     public function testContentUtilityBlocksByDefault(): void
@@ -94,6 +99,12 @@ final class HostGuardTest extends BaseSuite
     {
         $this->assertSame(['93.184.216.34'], HostGuard::assertSafe('https://93.184.216.34/'));
         $this->assertSame(['2606:2800:220:1:248:1893:25c8:1946'], HostGuard::assertSafe('https://[2606:2800:220:1:248:1893:25c8:1946]/'));
+    }
+
+    public function testPublicIpShorthandIsNormalised(): void
+    {
+        // 1572395042 is the decimal form of 93.184.216.34
+        $this->assertSame(['93.184.216.34'], HostGuard::assertSafe('https://1572395042/'));
     }
 
     #[DataProvider('blockedProvider')]

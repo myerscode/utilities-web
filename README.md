@@ -71,7 +71,7 @@ Parse, build and manipulate URLs.
 
 ## Security
 
-Requests are protected against server side request forgery (SSRF) by default. Only `http` and `https` URLs are allowed, and requests to hosts that resolve to loopback, private (RFC 1918), link-local (including cloud metadata at `169.254.169.254`), CGNAT or otherwise reserved addresses, their IPv6 equivalents and IPv4-mapped IPv6 throw a `BlockedHostException`. Redirects are checked on every hop, and curl, stream header checks and ping connect to the address that was checked, so DNS rebinding cannot swap it. The ping utility applies the same guard.
+Requests are protected against server side request forgery (SSRF) by default. Only `http` and `https` URLs are allowed, and requests to hosts that resolve to loopback, private (RFC 1918), link-local (including cloud metadata at `169.254.169.254`), CGNAT or otherwise reserved addresses, their IPv6 equivalents and IPv4-mapped IPv6 throw a `BlockedHostException`. Numeric shorthands such as `2130706433`, `0x7f.1` or `127.1` are decoded by the guard itself, so they are caught on every OS. Redirects are checked on every hop, and curl, stream header checks and ping connect to the address that was checked, so DNS rebinding cannot swap it. The ping utility applies the same guard.
 
 To reach internal hosts, opt out explicitly:
 
