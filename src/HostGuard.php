@@ -57,7 +57,7 @@ final class HostGuard
         $packed = @inet_pton($ip);
 
         if ($packed !== false && strlen($packed) === 16 && str_starts_with($packed, str_repeat("\0", 10) . "\xff\xff")) {
-            $ip = inet_ntop(substr($packed, 12));
+            $ip = inet_ntop(substr($packed, 12)) ?: $ip;
         }
 
         if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE) === false) {

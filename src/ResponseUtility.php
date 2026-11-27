@@ -114,7 +114,7 @@ class ResponseUtility
                 CURLOPT_REDIR_PROTOCOLS => CURLPROTO_HTTP | CURLPROTO_HTTPS,
             ]);
 
-            $host = parse_url($url, PHP_URL_HOST);
+            $host = (string)parse_url($url, PHP_URL_HOST);
 
             // pin the vetted addresses so the connection cannot be redirected by a second DNS lookup
             if ($ips !== [] && !filter_var(trim($host, '[]'), FILTER_VALIDATE_IP)) {
