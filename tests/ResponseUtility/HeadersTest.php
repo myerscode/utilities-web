@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\ResponseUtility;
 
+use Myerscode\Utilities\Web\Exceptions\NetworkErrorException;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Iterator;
 use Tests\BaseResponseSuite;
@@ -28,5 +29,12 @@ final class HeadersTest extends BaseResponseSuite
         $response = $this->utility(self::serverUrl($path))->fromHeaders();
 
         $this->assertSame($expected, $response->code());
+    }
+
+    public function testUnreachableHostThrowsNetworkError(): void
+    {
+        $this->expectException(NetworkErrorException::class);
+
+        $this->utility('http://127.0.0.1:1/')->fromHeaders();
     }
 }

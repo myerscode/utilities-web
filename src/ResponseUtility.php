@@ -9,6 +9,7 @@ use Myerscode\Utilities\Web\Data\ResponseFrom;
 use Myerscode\Utilities\Web\Exceptions\EmptyUrlException;
 use Myerscode\Utilities\Web\Exceptions\InvalidUrlException;
 use Myerscode\Utilities\Web\Exceptions\MaxRedirectsReachedException;
+use Myerscode\Utilities\Web\Exceptions\NetworkErrorException;
 use Myerscode\Utilities\Web\Exceptions\UnsupportedCheckMethodException;
 use Myerscode\Utilities\Web\Resource\Response;
 use Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface;
@@ -140,48 +141,41 @@ class ResponseUtility
      *
      * @throws InvalidUrlException
      * @throws MaxRedirectsReachedException
+     * @throws NetworkErrorException
      */
     public function fromHeaders(): Response
     {
         $url = $this->value();
 
-        // when guarded, redirects are followed here so every Location can be vetted
-        $manual = !$this->allowPrivateNetworks;
-
+        // redirects are followed here, not by the stream wrapper, so every Location can be vetted
         for ($hop = 0; ; $hop++) {
-            if ($manual) {
+            if (!$this->allowPrivateNetworks) {
                 HostGuard::assertSafe($url);
             }
 
             $context = stream_context_create([
                 'http' => [
                     'timeout' => $this->timeout(),
-                    'follow_location' => $manual ? 0 : 1,
+                    'follow_location' => 0,
                 ],
             ]);
 
             $headers = @get_headers($url, false, $context);
 
-            $code = 404;
+            if (!$headers || !preg_match('#^HTTP/\S+\s+([1-9]\d\d)\s+#', (string)$headers[0], $matches)) {
+                throw new NetworkErrorException('Could not get a response from ' . $url);
+            }
+
+            $code = (int)$matches[1];
             $location = null;
 
-            if ($headers) {
-                if ($this->followRedirects() && !$manual) {
-                    $headers = array_reverse($headers);
-                }
-
-                if (preg_match('#^HTTP/\S+\s+([1-9]\d\d)\s+.*#', (string)$headers[0], $matches)) {
-                    $code = (int)$matches[1];
-                }
-
-                foreach ($headers as $header) {
-                    if (preg_match('#^Location:\s*(\S+)#i', (string)$header, $matches)) {
-                        $location = $matches[1];
-                    }
+            foreach ($headers as $header) {
+                if (preg_match('#^Location:\s*(\S+)#i', (string)$header, $matches)) {
+                    $location = $matches[1];
                 }
             }
 
-            if (!$manual || !$this->followRedirects() || $location === null || !$this->isRedirect($code)) {
+            if (!$this->followRedirects() || $location === null || !$this->isRedirect($code)) {
                 return new Response($code);
             }
 

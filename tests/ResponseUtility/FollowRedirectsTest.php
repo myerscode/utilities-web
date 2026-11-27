@@ -81,4 +81,21 @@ final class FollowRedirectsTest extends BaseResponseSuite
 
         $this->utility(self::serverUrl('/to-ftp'))->setFollowRedirects(true)->fromCurl();
     }
+
+    public function testHeadersFollowRedirectsToFinalResponse(): void
+    {
+        self::$server->setResponseOfPath('/h-start', new TestResponse('', ['Location' => '/h-end'], 302));
+        self::$server->setResponseOfPath('/h-end', new TestResponse('', [], 200));
+
+        $utility = $this->utility(self::serverUrl('/h-start'))->setFollowRedirects(true);
+
+        $this->assertSame(200, $utility->fromHeaders()->code());
+    }
+
+    public function testHeadersReportFirstResponseWhenNotFollowing(): void
+    {
+        self::$server->setResponseOfPath('/h-stay', new TestResponse('', ['Location' => '/h-end'], 302));
+
+        $this->assertSame(302, $this->utility(self::serverUrl('/h-stay'))->fromHeaders()->code());
+    }
 }
