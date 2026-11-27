@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [CalVer](https://calver.org/) (`YYYY.MINOR.PATCH`).
 
+## [2026.1.0] - 2026-11-27
+### Bug Fixes
+- [`14509ea`](https://github.com/myerscode/utilities-web/commit/14509eaeaa8c6284567f8a4e3540e98a148aeeea) - SSRF guard, safe URLs and real status codes *(PR [#18](https://github.com/myerscode/utilities-web/pull/18) by [@oniice](https://github.com/oniice))*
+
+### Tests
+- [`8ef6a60`](https://github.com/myerscode/utilities-web/commit/8ef6a6066d9e556c7d975048dfa96f5d4832a237) - accept either rejection for malformed URLs *(PR [#17](https://github.com/myerscode/utilities-web/pull/17) by [@oniice](https://github.com/oniice))*
+
+
 ## [2026.0.1] - 2026-10-31
 ### New Features
 - [`1625651`](https://github.com/myerscode/utilities-web/commit/1625651e017d549c0a2b2c8745db5ef77646cec8) - **response**: add status helpers and methods *(commit by [@oniice](https://github.com/oniice))*
@@ -59,3 +67,4 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - [`bcab932`](https://github.com/myerscode/utilities-web/commit/bcab932affd465d59d316852a0ed51ee980c263c) chore: removed reference to url utility
 [2026.0.0]: https://github.com/myerscode/utilities-web/compare/2025.0.0...2026.0.0
 [2026.0.1]: https://github.com/myerscode/utilities-web/compare/2026.0.0...2026.0.1
+[2026.1.0]: https://github.com/myerscode/utilities-web/compare/2026.0.1...2026.1.0
