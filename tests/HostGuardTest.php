@@ -38,6 +38,13 @@ final class HostGuardTest extends BaseSuite
         yield 'short private ip' => ['http://10.1/'];
     }
 
+    public static function notNumericIpProvider(): Iterator
+    {
+        yield 'invalid octal digit' => ['http://08.0.0.1/'];
+        yield 'octet over 255' => ['http://256.0.0.1/'];
+        yield 'last part too large' => ['http://1.16777216/'];
+    }
+
     public function testContentUtilityBlocksByDefault(): void
     {
         $this->expectException(BlockedHostException::class);
@@ -93,6 +100,13 @@ final class HostGuardTest extends BaseSuite
         $this->expectException(BlockedHostException::class);
 
         (new ResponseUtility(self::serverUrl('/allowed')))->allowPrivateNetworks()->allowPrivateNetworks(false)->fromCurl();
+    }
+
+    #[DataProvider('notNumericIpProvider')]
+    public function testOutOfRangeNumericHostIsTreatedAsAHostname(string $url): void
+    {
+        // not a valid IPv4 shorthand, so it is resolved like a name and nothing answers
+        $this->assertSame([], HostGuard::assertSafe($url));
     }
 
     public function testPublicIpIsAllowed(): void
