@@ -3,8 +3,10 @@
 namespace Myerscode\Utilities\Web;
 
 use League\Uri\Components\Query;
+use League\Uri\Contracts\UriException;
 use League\Uri\Http;
 use Myerscode\Utilities\Web\Data\ResponseFrom;
+use Myerscode\Utilities\Web\Exceptions\InvalidUrlException;
 use Myerscode\Utilities\Web\Resource\Response;
 
 class UriUtility
@@ -336,6 +338,8 @@ class UriUtility
 
     /**
      * Set the current URL
+     *
+     * @throws InvalidUrlException
      */
     private function setUrl(string|Http $uri): void
     {
@@ -346,6 +350,10 @@ class UriUtility
             $trimmed = 'https://' . $trimmed;
         }
 
-        $this->http = Http::new($trimmed);
+        try {
+            $this->http = Http::new($trimmed);
+        } catch (UriException $e) {
+            throw new InvalidUrlException($e->getMessage(), 0, $e);
+        }
     }
 }
