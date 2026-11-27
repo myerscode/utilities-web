@@ -14,6 +14,7 @@
 - ext-curl
 - ext-dom
 - ext-filter
+- symfony/http-foundation (installed by Composer)
 
 ## Install
 
@@ -59,11 +60,29 @@ $response->isSuccessful(); // true for 2xx
 ### [Content Utility](docs/content-utility.md)
 Fetch and interact with web page content.
 
+### [Response Utility](docs/response-utility.md)
+Check the status of a URL.
+
 ### [Ping Utility](docs/ping-utility.md)
 Ping hosts and check latency.
 
 ### [URI Utility](docs/uri-utility.md)
 Parse, build and manipulate URLs.
+
+## Security
+
+Requests are protected against server side request forgery (SSRF) by default. Only `http` and `https` URLs are allowed, and requests to hosts that resolve to loopback, private (RFC 1918), link-local (including cloud metadata at `169.254.169.254`), CGNAT or otherwise reserved addresses, their IPv6 equivalents and IPv4-mapped IPv6 throw a `BlockedHostException`. Redirects are checked on every hop.
+
+To reach internal hosts, opt out explicitly:
+
+```php
+$web = Utility::make('http://localhost:8080')->allowPrivateNetworks();
+// or per utility: $web->content()->allowPrivateNetworks(), $web->response()->allowPrivateNetworks()
+```
+
+`UriUtility::value()` returns the URL as given. Only `%5B` and `%5D` are unescaped, so escapes such as `%2f`, `%26`, `%0d%0a` and `%00` keep their meaning.
+
+Limit the size of downloaded content with `$web->content()->withMaxBytes(1_048_576)`.
 
 ## Exception Handling
 
@@ -78,6 +97,16 @@ try {
     // Handle any package exception
 }
 ```
+
+| Exception | Thrown when |
+|---|---|
+| `InvalidUrlException` | the URL is malformed, or a redirect leaves http(s) |
+| `BlockedHostException` | (extends `InvalidUrlException`) the host is blocked by the SSRF guard |
+| `EmptyUrlException` | the URL is empty |
+| `NetworkErrorException` | no response was received (connection, DNS, timeout) |
+| `MaxRedirectsReachedException` | the redirect limit is exceeded |
+| `ResponseTooLargeException` | the body exceeds `withMaxBytes()` |
+| `FourHundredResponseException` / `FiveHundredResponseException` | `ContentUtility` received a 4xx / 5xx |
 
 ## License
 

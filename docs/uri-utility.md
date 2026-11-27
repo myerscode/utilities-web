@@ -190,7 +190,7 @@ $a->equals($b); // true
 
 ## check(ResponseFrom $method): Response
 
-Check the URL response using curl, headers, or HTTP client.
+Check the URL response using curl, headers, or HTTP client. Throws `NetworkErrorException` when no response is received and `BlockedHostException` for blocked hosts. See [Response Utility](response-utility.md).
 
 ```php
 use Myerscode\Utilities\Web\Data\ResponseFrom;
@@ -199,9 +199,17 @@ $response = $utility->check(ResponseFrom::CURL);
 $response->code(); // 200
 ```
 
+## allowPrivateNetworks(bool $allow = true): self
+
+`check()` blocks loopback, private, link-local, CGNAT and reserved addresses by default (see the [Security](../README.md#security) section). Call this before `check()` to allow them.
+
+```php
+$utility->allowPrivateNetworks()->check(); // http://localhost works
+```
+
 ## value(): string
 
-Get the full URL string.
+Get the full URL string. Only `%5B` and `%5D` are unescaped to `[` and `]`; other percent-escapes (`%2f`, `%26`, `%0d%0a`, `%00`) are left as they are.
 
 ```php
 $utility->value(); // 'https://example.com/path?foo=bar#section'
