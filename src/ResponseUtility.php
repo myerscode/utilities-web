@@ -229,7 +229,8 @@ class ResponseUtility
      */
     public function value(): string
     {
-        return urldecode((string)$this->http);
+        // only brackets are unescaped; decoding anything else would change the URL's meaning (%2f, %26, %0d%0a, %00)
+        return str_ireplace(['%5B', '%5D'], ['[', ']'], (string)$this->http);
     }
 
     /**
