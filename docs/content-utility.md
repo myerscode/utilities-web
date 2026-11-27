@@ -99,6 +99,24 @@ $utility->withTimeout(60);
 $content = $utility->content();
 ```
 
+## withMaxBytes(?int $bytes): self
+
+Cap the response body size in bytes. The request is aborted as soon as the cap is exceeded and a `ResponseTooLargeException` is thrown. Applies to `content()`, `response()` and `post()`. The default, `null`, is unlimited.
+
+```php
+$utility->withMaxBytes(1_048_576); // 1 MiB
+$content = $utility->content();
+```
+
+## allowPrivateNetworks(bool $allow = true): self
+
+Requests to loopback, private (RFC 1918), link-local (including `169.254.169.254`), CGNAT and reserved addresses, their IPv6 equivalents and IPv4-mapped IPv6 are blocked by default, as are non-http(s) schemes. A blocked request throws `BlockedHostException` (a subclass of `InvalidUrlException`). Redirects and DNS results are checked on every hop. Call this to allow internal targets such as `localhost`.
+
+```php
+$utility->allowPrivateNetworks();
+$content = $utility->content(); // http://localhost works
+```
+
 ## url(): string
 
 Get the URL the utility is using.

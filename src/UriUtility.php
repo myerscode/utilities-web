@@ -3,13 +3,20 @@
 namespace Myerscode\Utilities\Web;
 
 use League\Uri\Components\Query;
+use League\Uri\Contracts\UriException;
 use League\Uri\Http;
 use Myerscode\Utilities\Web\Data\ResponseFrom;
+use Myerscode\Utilities\Web\Exceptions\InvalidUrlException;
 use Myerscode\Utilities\Web\Resource\Response;
 
 class UriUtility
 {
     public const DEFAULT_SCHEME = 'http://';
+
+    /**
+     * Allow checks against loopback, private, link-local and reserved addresses
+     */
+    private bool $allowPrivateNetworks = false;
 
     private Http $http;
 
@@ -43,11 +50,23 @@ class UriUtility
     }
 
     /**
+     * Allow (or block again) checks against loopback, private, link-local and reserved addresses.
+     *
+     * Blocked by default to prevent server side request forgery.
+     */
+    public function allowPrivateNetworks(bool $allow = true): self
+    {
+        $this->allowPrivateNetworks = $allow;
+
+        return $this;
+    }
+
+    /**
      * Check the response from the uri
      */
     public function check(ResponseFrom $responseFrom = ResponseFrom::CURL): Response
     {
-        $responseUtility = new ResponseUtility($this->value());
+        $responseUtility = (new ResponseUtility($this->value()))->allowPrivateNetworks($this->allowPrivateNetworks);
 
         return $responseUtility->check($responseFrom);
     }
@@ -263,7 +282,8 @@ class UriUtility
      */
     public function value(): string
     {
-        return urldecode((string)$this->http);
+        // only brackets are unescaped; decoding anything else would change the URL's meaning (%2f, %26, %0d%0a, %00)
+        return str_ireplace(['%5B', '%5D'], ['[', ']'], (string)$this->http);
     }
 
     /**
@@ -318,6 +338,8 @@ class UriUtility
 
     /**
      * Set the current URL
+     *
+     * @throws InvalidUrlException
      */
     private function setUrl(string|Http $uri): void
     {
@@ -328,6 +350,10 @@ class UriUtility
             $trimmed = 'https://' . $trimmed;
         }
 
-        $this->http = Http::new($trimmed);
+        try {
+            $this->http = Http::new($trimmed);
+        } catch (UriException $e) {
+            throw new InvalidUrlException($e->getMessage(), 0, $e);
+        }
     }
 }

@@ -3,22 +3,30 @@
 namespace Myerscode\Utilities\Web;
 
 use Curl\Curl;
+use League\Uri\Contracts\UriException;
 use League\Uri\Http;
+use League\Uri\Uri;
 use Myerscode\Utilities\Web\Data\ResponseFrom;
+use Myerscode\Utilities\Web\Exceptions\BlockedHostException;
 use Myerscode\Utilities\Web\Exceptions\EmptyUrlException;
 use Myerscode\Utilities\Web\Exceptions\InvalidUrlException;
+use Myerscode\Utilities\Web\Exceptions\MaxRedirectsReachedException;
+use Myerscode\Utilities\Web\Exceptions\NetworkErrorException;
 use Myerscode\Utilities\Web\Exceptions\UnsupportedCheckMethodException;
 use Myerscode\Utilities\Web\Resource\Response;
-use Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface;
-use Symfony\Contracts\HttpClient\Exception\ServerExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
-use Exception;
+use Throwable;
 
 class ResponseUtility
 {
     public const DEFAULT_SCHEME = 'https://';
 
     protected int $maxRedirects = 10;
+
+    /**
+     * Allow requests to loopback, private, link-local and reserved addresses
+     */
+    private bool $allowPrivateNetworks = false;
 
     /**
      * Should follow redirects
@@ -35,6 +43,18 @@ class ResponseUtility
     public function __construct(string|UriUtility $uri)
     {
         $this->setUrl($uri);
+    }
+
+    /**
+     * Allow (or block again) requests to loopback, private, link-local and reserved addresses.
+     *
+     * Blocked by default to prevent server side request forgery.
+     */
+    public function allowPrivateNetworks(bool $allow = true): self
+    {
+        $this->allowPrivateNetworks = $allow;
+
+        return $this;
     }
 
     /**
@@ -67,92 +87,139 @@ class ResponseUtility
      *
      * @throws EmptyUrlException
      * @throws InvalidUrlException
+     * @throws MaxRedirectsReachedException
+     * @throws NetworkErrorException
      */
     public function fromCurl(): Response
     {
         $this->checkUrl();
-        $curl = new Curl();
-        $curl->setUrl($this->value());
 
-        $curl->setOpts([
-            CURLOPT_HEADER => true,
-            CURLOPT_NOBODY => true,
-            CURLOPT_RETURNTRANSFER => true,
-        ]);
+        $url = $this->value();
 
-        if ($this->followRedirects()) {
-            $curl->setFollowLocation();
-            $curl->setMaximumRedirects($this->maxRedirects);
-        } else {
+        // redirects are followed here, not by curl, so every Location can be vetted
+        for ($hop = 0; ; $hop++) {
+            $ips = $this->allowPrivateNetworks ? [] : HostGuard::assertSafe($url);
+
+            // an unvetted address could not be pinned, so curl must not resolve it itself
+            if (!$this->allowPrivateNetworks && $ips === []) {
+                throw new NetworkErrorException('Could not resolve ' . $url);
+            }
+
+            $curl = new Curl();
+            $curl->setUrl($url);
+
+            $curl->setOpts([
+                CURLOPT_HEADER => true,
+                CURLOPT_NOBODY => true,
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_PROTOCOLS => CURLPROTO_HTTP | CURLPROTO_HTTPS,
+                CURLOPT_REDIR_PROTOCOLS => CURLPROTO_HTTP | CURLPROTO_HTTPS,
+            ]);
+
+            $host = (string)parse_url($url, PHP_URL_HOST);
+
+            // pin the vetted addresses so the connection cannot be redirected by a second DNS lookup
+            if ($ips !== [] && !filter_var(trim($host, '[]'), FILTER_VALIDATE_IP)) {
+                $port = parse_url($url, PHP_URL_PORT) ?? (strtolower((string)parse_url($url, PHP_URL_SCHEME)) === 'https' ? 443 : 80);
+                $addresses = implode(',', array_map(static fn (string $ip): string => str_contains($ip, ':') ? '[' . $ip . ']' : $ip, $ips));
+                $curl->setOpt(CURLOPT_RESOLVE, [sprintf('%s:%d:%s', $host, $port, $addresses)]);
+            }
+
             $curl->setFollowLocation(false);
+            $curl->setTimeout($this->timeout());
+            $curl->setConnectTimeout($this->timeout());
+            $curl->exec();
+
+            if ($curl->curlError) {
+                throw new NetworkErrorException((string)$curl->curlErrorMessage, (int)$curl->curlErrorCode);
+            }
+
+            $code = (int)$curl->getHttpStatusCode();
+            $location = $curl->responseHeaders['Location'] ?? null;
+
+            if (!$this->followRedirects() || !is_string($location) || !$this->isRedirect($code)) {
+                return new Response($code);
+            }
+
+            $url = $this->nextUrl($url, $location, $hop);
         }
-
-        $curl->setTimeout($this->timeout());
-        $curl->setConnectTimeout($this->timeout());
-        $curl->exec();
-
-        return new Response($curl->getHttpStatusCode());
     }
 
     /**
      * Check the url exists using headers
+     *
+     * @throws InvalidUrlException
+     * @throws MaxRedirectsReachedException
+     * @throws NetworkErrorException
      */
     public function fromHeaders(): Response
     {
-        $streamContextDefaults = stream_context_get_options(stream_context_get_default());
+        $url = $this->value();
 
-        stream_context_set_default(
-            [
+        // redirects are followed here, not by the stream wrapper, so every Location can be vetted
+        for ($hop = 0; ; $hop++) {
+            $options = [
                 'http' => [
                     'timeout' => $this->timeout(),
+                    'follow_location' => 0,
                 ],
-            ],
-        );
+            ];
+            $target = $url;
 
-        $headers = @get_headers($this->value());
-
-        stream_context_set_default($streamContextDefaults);
-
-        $code = 404;
-
-        if ($headers) {
-            if ($this->followRedirects()) {
-                $headers = array_reverse($headers);
+            if (!$this->allowPrivateNetworks) {
+                [$target, $options] = $this->pinToVettedIp($url, $options);
             }
 
-            $header = $headers[0];
+            $headers = @get_headers($target, false, stream_context_create($options));
 
-            if (preg_match('#^HTTP/\S+\s+([1-9]\d\d)\s+.*#', (string)$header, $matches)) {
-                $code = $matches[1];
+            if (!$headers || !preg_match('#^HTTP/\S+\s+([1-9]\d\d)\s+#', (string)$headers[0], $matches)) {
+                throw new NetworkErrorException('Could not get a response from ' . $url);
             }
+
+            $code = (int)$matches[1];
+            $location = null;
+
+            foreach ($headers as $header) {
+                if (preg_match('#^Location:\s*(\S+)#i', (string)$header, $matches)) {
+                    $location = $matches[1];
+                }
+            }
+
+            if (!$this->followRedirects() || $location === null || !$this->isRedirect($code)) {
+                return new Response($code);
+            }
+
+            $url = $this->nextUrl($url, $location, $hop);
         }
-
-        return new Response((int)$code);
     }
-
 
     /**
      * Check the url exists using a http client
      *
      * @throws EmptyUrlException
      * @throws InvalidUrlException
-     * @throws TransportExceptionInterface
+     * @throws NetworkErrorException
      */
     public function fromHttpClient(): Response
     {
         $this->checkUrl();
 
-        $client = ClientUtility::client();
+        if (!$this->allowPrivateNetworks) {
+            HostGuard::assertSafe($this->value());
+        }
+
+        $client = ClientUtility::client($this->allowPrivateNetworks);
 
         try {
-            $response = $client->request('GET', $this->value());
+            $response = $client->request('GET', $this->value(), [
+                'timeout' => $this->timeout(),
+                'max_redirects' => $this->followRedirects() ? $this->maxRedirects : 0,
+            ]);
+
+            // getStatusCode() does not throw on 3xx, 4xx or 5xx
             $statusCode = $response->getStatusCode();
-        } catch (ClientExceptionInterface) {
-            $statusCode = 400;
-        } catch (ServerExceptionInterface) {
-            $statusCode = 500;
-        } catch (Exception) {
-            throw new InvalidUrlException();
+        } catch (TransportExceptionInterface $e) {
+            throw new NetworkErrorException($e->getMessage(), (int)$e->getCode(), $e);
         }
 
         return new Response($statusCode);
@@ -229,7 +296,8 @@ class ResponseUtility
      */
     public function value(): string
     {
-        return urldecode((string)$this->http);
+        // only brackets are unescaped; decoding anything else would change the URL's meaning (%2f, %26, %0d%0a, %00)
+        return str_ireplace(['%5B', '%5D'], ['[', ']'], (string)$this->http);
     }
 
     /**
@@ -249,6 +317,65 @@ class ResponseUtility
         }
     }
 
+    private function isRedirect(int $code): bool
+    {
+        return in_array($code, [301, 302, 303, 307, 308], true);
+    }
+
+    /**
+     * Resolve the next hop of a redirect, enforcing the redirect limit and http(s) only
+     *
+     * @throws InvalidUrlException
+     * @throws MaxRedirectsReachedException
+     */
+    private function nextUrl(string $current, string $location, int $hop): string
+    {
+        if ($hop >= $this->maxRedirects) {
+            throw new MaxRedirectsReachedException();
+        }
+
+        try {
+            $next = (string)Uri::new($current)->resolve($location);
+        } catch (Throwable) {
+            throw new InvalidUrlException();
+        }
+
+        if (!preg_match('#^https?://#i', $next)) {
+            throw new InvalidUrlException();
+        }
+
+        return $next;
+    }
+
+    /**
+     * Point a stream request at the vetted IP while keeping the original Host header and TLS name,
+     * so a second DNS lookup by the stream wrapper cannot reach a different address
+     *
+     * @param  array<string, array<string, mixed>>  $options
+     * @return array{0: string, 1: array<string, array<string, mixed>>}
+     *
+     * @throws BlockedHostException
+     * @throws NetworkErrorException
+     */
+    private function pinToVettedIp(string $url, array $options): array
+    {
+        $ips = HostGuard::assertSafe($url);
+
+        if ($ips === []) {
+            throw new NetworkErrorException('Could not resolve ' . $url);
+        }
+
+        $http = Http::new($url);
+        $host = (string) $http->getHost();
+        $port = $http->getPort();
+        $ip = str_contains($ips[0], ':') ? '[' . $ips[0] . ']' : $ips[0];
+
+        $options['http']['header'] = 'Host: ' . $host . ($port !== null ? ':' . $port : '');
+        $options['ssl'] = ['peer_name' => trim($host, '[]'), 'SNI_enabled' => true];
+
+        return [(string) $http->withHost($ip), $options];
+    }
+
     /**
      * Set the current URL
      *
@@ -259,12 +386,20 @@ class ResponseUtility
     {
         $trimmed = trim($uri instanceof UriUtility ? $uri->value() : $uri);
 
+        if ($trimmed === '') {
+            throw new EmptyUrlException();
+        }
+
         // check if a scheme is present at the start, if not we need to give it one
         if (!preg_match('#^https?://#i', $trimmed)) {
             $trimmed = self::DEFAULT_SCHEME . $trimmed;
         }
 
-        $this->http = Http::new($trimmed);
+        try {
+            $this->http = Http::new($trimmed);
+        } catch (UriException $exception) {
+            throw new InvalidUrlException($exception->getMessage(), 0, $exception);
+        }
 
         $this->checkUrl();
     }

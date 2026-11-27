@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\UriUtility;
 
+use Myerscode\Utilities\Web\Exceptions\InvalidUrlException;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\BaseUriSuite;
 use Iterator;
@@ -30,4 +31,10 @@ final class ConstructTest extends BaseUriSuite
         $this->assertSame($expected, $this->utility($string)->value());
     }
 
+    public function testMalformedUrlThrowsInvalidUrlException(): void
+    {
+        $this->expectException(InvalidUrlException::class);
+
+        $this->utility('http://[::1');
+    }
 }

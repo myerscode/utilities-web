@@ -10,6 +10,6 @@ abstract class BaseResponseSuite extends BaseSuite
 {
     public function utility(string $url): ResponseUtility
     {
-        return new ResponseUtility($url);
+        return (new ResponseUtility($url))->allowPrivateNetworks();
     }
 }

@@ -46,4 +46,13 @@ final class FeaturesTest extends BaseResponseSuite
 
         $this->assertSame($utility, $result);
     }
+
+    public function testValueDoesNotDecodeReservedEscapes(): void
+    {
+        $utility = $this->utility('https://example.com/a%2f@b?q=a%26b&x=%0d%0a%00');
+
+        $this->assertStringContainsString('/a%2f@b', $utility->value());
+        $this->assertStringContainsString('q=a%26b', $utility->value());
+        $this->assertStringContainsString('%0d%0a%00', $utility->value());
+    }
 }

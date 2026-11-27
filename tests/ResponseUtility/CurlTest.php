@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\ResponseUtility;
 
+use Myerscode\Utilities\Web\Exceptions\NetworkErrorException;
+use Myerscode\Utilities\Web\ResponseUtility;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Iterator;
 use Tests\BaseResponseSuite;
@@ -28,5 +30,19 @@ final class CurlTest extends BaseResponseSuite
         $response = $this->utility(self::serverUrl($path))->fromCurl();
 
         $this->assertSame($expected, $response->code());
+    }
+
+    public function testConnectionFailureThrowsNetworkError(): void
+    {
+        $this->expectException(NetworkErrorException::class);
+
+        $this->utility('http://127.0.0.1:1/')->fromCurl();
+    }
+
+    public function testUnresolvableHostThrowsNetworkError(): void
+    {
+        $this->expectException(NetworkErrorException::class);
+
+        (new ResponseUtility('https://rupert.invalid/'))->fromCurl();
     }
 }
