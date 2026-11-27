@@ -12,10 +12,7 @@ use Myerscode\Utilities\Web\Exceptions\MaxRedirectsReachedException;
 use Myerscode\Utilities\Web\Exceptions\NetworkErrorException;
 use Myerscode\Utilities\Web\Exceptions\UnsupportedCheckMethodException;
 use Myerscode\Utilities\Web\Resource\Response;
-use Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface;
-use Symfony\Contracts\HttpClient\Exception\ServerExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
-use Exception;
 use Throwable;
 
 class ResponseUtility
@@ -188,7 +185,7 @@ class ResponseUtility
      *
      * @throws EmptyUrlException
      * @throws InvalidUrlException
-     * @throws TransportExceptionInterface
+     * @throws NetworkErrorException
      */
     public function fromHttpClient(): Response
     {
@@ -201,14 +198,15 @@ class ResponseUtility
         $client = ClientUtility::client($this->allowPrivateNetworks);
 
         try {
-            $response = $client->request('GET', $this->value());
+            $response = $client->request('GET', $this->value(), [
+                'timeout' => $this->timeout(),
+                'max_redirects' => $this->followRedirects() ? $this->maxRedirects : 0,
+            ]);
+
+            // getStatusCode() does not throw on 3xx, 4xx or 5xx
             $statusCode = $response->getStatusCode();
-        } catch (ClientExceptionInterface) {
-            $statusCode = 400;
-        } catch (ServerExceptionInterface) {
-            $statusCode = 500;
-        } catch (Exception) {
-            throw new InvalidUrlException();
+        } catch (TransportExceptionInterface $e) {
+            throw new NetworkErrorException($e->getMessage(), (int)$e->getCode(), $e);
         }
 
         return new Response($statusCode);

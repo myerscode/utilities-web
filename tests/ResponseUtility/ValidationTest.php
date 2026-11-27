@@ -6,6 +6,7 @@ namespace Tests\ResponseUtility;
 
 use League\Uri\Exceptions\SyntaxError;
 use Myerscode\Utilities\Web\Exceptions\InvalidUrlException;
+use Myerscode\Utilities\Web\Exceptions\NetworkErrorException;
 use Myerscode\Utilities\Web\ResponseUtility;
 use Tests\BaseResponseSuite;
 
@@ -42,9 +43,9 @@ final class ValidationTest extends BaseResponseSuite
         $this->utility('https://!!!invalid')->fromHttpClient();
     }
 
-    public function testFromHttpClientThrowsInvalidUrlForUnreachableHost(): void
+    public function testFromHttpClientThrowsNetworkErrorForUnreachableHost(): void
     {
-        $this->expectException(InvalidUrlException::class);
+        $this->expectException(NetworkErrorException::class);
 
         $this->utility('https://localhost:1')->fromHttpClient();
     }
