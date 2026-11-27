@@ -50,7 +50,7 @@ class Utility
      */
     public function ping(): PingUtility
     {
-        return new PingUtility($this->url);
+        return (new PingUtility($this->url))->allowPrivateNetworks($this->allowPrivateNetworks);
     }
 
     /**

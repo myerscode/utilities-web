@@ -2,10 +2,13 @@
 
 namespace Myerscode\Utilities\Web;
 
+use Myerscode\Utilities\Web\Exceptions\BlockedHostException;
 use RuntimeException;
 
 class PingUtility
 {
+    private bool $allowPrivateNetworks = false;
+
     /**
      * How long to wait in seconds before timing out requests
      */
@@ -27,7 +30,19 @@ class PingUtility
     }
 
     /**
+     * Allow (or block again) pinging loopback, private, link-local and reserved addresses. Blocked by default.
+     */
+    public function allowPrivateNetworks(bool $allow = true): self
+    {
+        $this->allowPrivateNetworks = $allow;
+
+        return $this;
+    }
+
+    /**
      * Check if the host is alive
+     *
+     * @throws BlockedHostException
      */
     public function isAlive(): bool
     {
@@ -36,6 +51,8 @@ class PingUtility
 
     /**
      * Get the latency in milliseconds, or null if unreachable
+     *
+     * @throws BlockedHostException
      */
     public function latency(): ?float
     {
@@ -44,6 +61,8 @@ class PingUtility
 
     /**
      * Ping a urls host and return whether it's alive and the latency
+     *
+     * @throws BlockedHostException
      */
     public function ping(): array
     {
@@ -52,7 +71,19 @@ class PingUtility
             'latency' => null,
         ];
 
-        $host = $this->uriUtility->host();
+        $host = trim($this->uriUtility->host(), '[]');
+
+        if (!$this->allowPrivateNetworks) {
+            // ping the vetted address itself so a second DNS lookup cannot point elsewhere
+            $ips = HostGuard::assertSafe('https://' . (str_contains($host, ':') ? '[' . $host . ']' : $host));
+
+            if ($ips === []) {
+                return $ping;
+            }
+
+            $host = $ips[0];
+        }
+
         $pingCmd = $this->getPingCommand($host);
         $escapedHost = escapeshellarg($host);
 
