@@ -6,6 +6,7 @@ use Curl\Curl;
 use League\Uri\Http;
 use League\Uri\Uri;
 use Myerscode\Utilities\Web\Data\ResponseFrom;
+use Myerscode\Utilities\Web\Exceptions\BlockedHostException;
 use Myerscode\Utilities\Web\Exceptions\EmptyUrlException;
 use Myerscode\Utilities\Web\Exceptions\InvalidUrlException;
 use Myerscode\Utilities\Web\Exceptions\MaxRedirectsReachedException;
@@ -156,18 +157,19 @@ class ResponseUtility
 
         // redirects are followed here, not by the stream wrapper, so every Location can be vetted
         for ($hop = 0; ; $hop++) {
-            if (!$this->allowPrivateNetworks) {
-                HostGuard::assertSafe($url);
-            }
-
-            $context = stream_context_create([
+            $options = [
                 'http' => [
                     'timeout' => $this->timeout(),
                     'follow_location' => 0,
                 ],
-            ]);
+            ];
+            $target = $url;
 
-            $headers = @get_headers($url, false, $context);
+            if (!$this->allowPrivateNetworks) {
+                [$target, $options] = $this->pinToVettedIp($url, $options);
+            }
+
+            $headers = @get_headers($target, false, stream_context_create($options));
 
             if (!$headers || !preg_match('#^HTTP/\S+\s+([1-9]\d\d)\s+#', (string)$headers[0], $matches)) {
                 throw new NetworkErrorException('Could not get a response from ' . $url);
@@ -342,6 +344,35 @@ class ResponseUtility
         }
 
         return $next;
+    }
+
+    /**
+     * Point a stream request at the vetted IP while keeping the original Host header and TLS name,
+     * so a second DNS lookup by the stream wrapper cannot reach a different address
+     *
+     * @param  array<string, array<string, mixed>>  $options
+     * @return array{0: string, 1: array<string, array<string, mixed>>}
+     *
+     * @throws BlockedHostException
+     * @throws NetworkErrorException
+     */
+    private function pinToVettedIp(string $url, array $options): array
+    {
+        $ips = HostGuard::assertSafe($url);
+
+        if ($ips === []) {
+            throw new NetworkErrorException('Could not resolve ' . $url);
+        }
+
+        $http = Http::new($url);
+        $host = (string) $http->getHost();
+        $port = $http->getPort();
+        $ip = str_contains($ips[0], ':') ? '[' . $ips[0] . ']' : $ips[0];
+
+        $options['http']['header'] = 'Host: ' . $host . ($port !== null ? ':' . $port : '');
+        $options['ssl'] = ['peer_name' => trim($host, '[]'), 'SNI_enabled' => true];
+
+        return [(string) $http->withHost($ip), $options];
     }
 
     /**

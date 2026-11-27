@@ -34,7 +34,7 @@ Timeout in seconds (default 10).
 
 ## allowPrivateNetworks(bool $allow = true): self
 
-Loopback, private, link-local, CGNAT and reserved addresses are blocked by default, and every redirect hop is checked. Blocked requests throw `BlockedHostException`. With curl the vetted address is pinned to the connection to prevent DNS rebinding. Call this to allow internal targets such as `localhost`.
+Loopback, private, link-local, CGNAT and reserved addresses are blocked by default, and every redirect hop is checked. Blocked requests throw `BlockedHostException`. With curl and stream headers the vetted address is pinned to the connection (keeping the original Host header and TLS name) to prevent DNS rebinding. Call this to allow internal targets such as `localhost`.
 
 ```php
 $utility->allowPrivateNetworks()->check(ResponseFrom::CURL);

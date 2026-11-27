@@ -71,13 +71,13 @@ Parse, build and manipulate URLs.
 
 ## Security
 
-Requests are protected against server side request forgery (SSRF) by default. Only `http` and `https` URLs are allowed, and requests to hosts that resolve to loopback, private (RFC 1918), link-local (including cloud metadata at `169.254.169.254`), CGNAT or otherwise reserved addresses, their IPv6 equivalents and IPv4-mapped IPv6 throw a `BlockedHostException`. Redirects are checked on every hop.
+Requests are protected against server side request forgery (SSRF) by default. Only `http` and `https` URLs are allowed, and requests to hosts that resolve to loopback, private (RFC 1918), link-local (including cloud metadata at `169.254.169.254`), CGNAT or otherwise reserved addresses, their IPv6 equivalents and IPv4-mapped IPv6 throw a `BlockedHostException`. Redirects are checked on every hop, and curl, stream header checks and ping connect to the address that was checked, so DNS rebinding cannot swap it. The ping utility applies the same guard.
 
 To reach internal hosts, opt out explicitly:
 
 ```php
 $web = Utility::make('http://localhost:8080')->allowPrivateNetworks();
-// or per utility: $web->content()->allowPrivateNetworks(), $web->response()->allowPrivateNetworks()
+// or per utility: $web->content()->allowPrivateNetworks(), $web->response()->allowPrivateNetworks(), $web->ping()->allowPrivateNetworks()
 ```
 
 `UriUtility::value()` returns the URL as given. Only `%5B` and `%5D` are unescaped, so escapes such as `%2f`, `%26`, `%0d%0a` and `%00` keep their meaning.
